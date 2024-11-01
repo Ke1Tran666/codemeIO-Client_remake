@@ -1,0 +1,108 @@
+/* doơnload-button */
+.Download-button::before,
+.Download-button::after {
+    content: "";
+    width: 4px;
+    height: 40%;
+    background-color: rgba(44, 143, 255, 1);
+    position: absolute;
+    transition: all 0.6s;
+}
+
+.Download-button::before {
+    left: 0;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+.Download-button::after {
+    right: 0;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+.Download-button:hover::before,
+.Download-button:hover::after {
+    height: 60%;
+}
+
+/* underline-hover */
+.underline-hover::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 2px;
+    /* Độ dày của gạch chân */
+    background: currentColor;
+    transition: width 0.3s ease;
+}
+
+.underline-hover:hover::after {
+    width: 100%;
+}
+
+/* socialContainer */
+
+.socialContainer {
+    width: 48px;
+    height: 48px;
+    background-color: rgb(44, 44, 44);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition-duration: .5s;
+}
+
+/* instagram*/
+.containerOne:hover {
+    background-color: #d62976;
+    transition-duration: .5s;
+}
+
+/* twitter*/
+.containerTwo:hover {
+    background-color: #00acee;
+    transition-duration: .5s;
+}
+
+/* linkdin*/
+.containerThree:hover {
+    background-color: #0072b1;
+    transition-duration: .5s;
+}
+
+/* Whatsapp*/
+.containerFour:hover {
+    background-color: #128C7E;
+    transition-duration: .5s;
+}
+
+.socialContainer:active {
+    transform: scale(0.9);
+    transition-duration: .5s;
+}
+
+.socialSvg {
+    width: 17px;
+}
+
+.socialSvg path {
+    fill: rgb(255, 255, 255);
+}
+
+.socialContainer:hover .socialSvg {
+    animation: slide-in-top 0.5s both;
+}
+
+@keyframes slide-in-top {
+    0% {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
