@@ -6,9 +6,7 @@ const Client = () => {
     return (
         <>
             <ClientHeader />
-            <main>
-                <Outlet />
-            </main>
+            <Outlet />
             <ClientFooter />
         </>
     )

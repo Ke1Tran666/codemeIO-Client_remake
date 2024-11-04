@@ -34,7 +34,7 @@ const ClientHeader = () => {
 
     return (
         <header className="bg-white shadow-custom-1 mb-8">
-            <div className="mx-auto px-4 max-w-7xl">
+            <div className="mx-auto px-4 max-w-[1320px]">
                 <div className="flex flex-wrap items-center justify-between py-4">
                     <ElectroLogo />
                     <div className="relative max-w-[300px]">
