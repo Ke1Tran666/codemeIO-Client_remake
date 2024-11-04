@@ -4,13 +4,19 @@ const ClientFooter = () => {
     return (
         <footer className="mt-12 py-12 bg-gray-100 border-t border-gray-200">
             <div className="px-4 max-w-[1320px] mx-auto">
-                <div className="grid grid-cols-5 items-start text-[#444655] gap-5 leading-6 mx-20 px-5 flex-1">
+                <div className="grid grid-cols-5 items-start text-[#444655] gap-5 leading-6 px-5 flex-1">
                     <div className="flex flex-col justify-start items-start gap-3 text-[#444655]">
                         <a className="" href="/">
                             <ElectroLogo />
                         </a>
-                        <p className="text-base">Email: codemeio321@gmail.com</p>
-                        <p className="text-base">Địa chỉ: QTSC 9 Building, Đ. Tô Ký, Tân Chánh Hiệp, Quận 12, Hồ Chí Minh, Việt Nam</p>
+                        <div className="text-base">
+                            <span className="font-bold">Email:</span>
+                            <p className=""> codemeio321@gmail.com</p>
+                        </div>
+                        <div className="text-base">
+                            <span className="font-bold">Địa chỉ:</span>
+                            <p className=""> QTSC 9 Building, Đ. Tô Ký, Tân Chánh Hiệp, Quận 12, Hồ Chí Minh, Việt Nam</p>
+                        </div>
                     </div>
                     <div className="flex flex-col justify-start items-start gap-3 text-[#444655]">
                         <h3 className="font-bold underline text-xl mb-3">Giới thiệu:</h3>

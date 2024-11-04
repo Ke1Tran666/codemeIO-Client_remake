@@ -2,11 +2,15 @@ import Logo from '/logo.png'
 
 const ElectroLogo = () => {
     return (
-        <div className='flex justify-center items-center gap-2'>
-            <div className="size-12 flex items-center justify-center bg-primary rounded-full flex-shrink-0">
-                <img className='size-10 object-cover' src={Logo} alt='logo-cua-web-khoa-hoc-codemeIO ' />
+        <div className="flex items-center justify-center gap-2">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary sm:h-12 sm:w-12">
+                <img
+                    className="h-8 w-8 object-cover sm:h-10 sm:w-10"
+                    src={Logo}
+                    alt="Logo của web khoa học CodemeIO"
+                />
             </div>
-            <p className='text-primary font-extrabold text-2xl'>Codeme-IO</p>
+            <p className="hidden text-2xl font-extrabold text-primary sm:block">Codeme-IO</p>
         </div>
     )
 }
