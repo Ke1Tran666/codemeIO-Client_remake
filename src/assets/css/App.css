@@ -54,30 +54,53 @@
     transition-duration: .5s;
 }
 
-/* instagram*/
+.socialContainerWrapper {
+    display: flex;
+    gap: 12px;
+}
+
+/* Điều chỉnh kích thước icon cho màn hình nhỏ */
+@media screen and (max-width: 1279.98px) {
+    .socialContainerWrapper {
+        flex-wrap: wrap;
+        justify-content: start;
+        /* Căn giữa các icon khi xuống dòng */
+    }
+}
+
+
+@media (max-width: 640px) {
+    .socialContainer {
+        width: 36px;
+        height: 36px;
+    }
+
+    .socialSvg {
+        width: 14px;
+    }
+}
+
+/* Instagram */
 .containerOne:hover {
     background-color: #d62976;
-    transition-duration: .5s;
 }
 
-/* twitter*/
+/* Twitter */
 .containerTwo:hover {
     background-color: #00acee;
-    transition-duration: .5s;
 }
 
-/* linkdin*/
+/* LinkedIn */
 .containerThree:hover {
     background-color: #0072b1;
-    transition-duration: .5s;
 }
 
-/* Whatsapp*/
+/* WhatsApp */
 .containerFour:hover {
     background-color: #128C7E;
-    transition-duration: .5s;
 }
 
+/* Kích hoạt hiệu ứng thu nhỏ khi bấm */
 .socialContainer:active {
     transform: scale(0.9);
     transition-duration: .5s;
@@ -91,6 +114,7 @@
     fill: rgb(255, 255, 255);
 }
 
+/* Hiệu ứng animation khi hover */
 .socialContainer:hover .socialSvg {
     animation: slide-in-top 0.5s both;
 }

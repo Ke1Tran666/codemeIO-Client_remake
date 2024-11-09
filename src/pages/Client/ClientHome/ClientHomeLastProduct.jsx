@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState } from 'react';
+import ClientProduct from '../ClientProduct/ClientProduct';
 
 const courses = [
     { id: 1, title: 'React for Beginners', category: 'Web Development', rating: 4.7, students: 10000, price: 19.99, image: 'https://media.licdn.com/dms/image/D4D12AQHLOphoHIjmoA/article-cover_image-shrink_720_1280/0/1680313616595?e=2147483647&v=beta&t=MDjk4m7S2o2GJeVZGRSsA8WkmumgdYuQiTZfQ2bRkBk' },
@@ -42,7 +43,7 @@ const ClientHomeLastProduct = () => {
     });
 
     const CourseCard = ({ course }) => (
-        <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+        <a href={<ClientProduct />} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
             <img src={course.image} alt={course.title} className="w-full h-40 object-cover" />
             <div className="p-4">
                 <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
@@ -53,7 +54,7 @@ const ClientHomeLastProduct = () => {
                 </div>
                 <p className="font-bold">${course.price.toFixed(2)}</p>
             </div>
-        </div>
+        </a>
     );
 
     return (
@@ -70,7 +71,7 @@ const ClientHomeLastProduct = () => {
                                 <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
                                 <div className="bg-gray-200 rounded-full h-2 mb-2">
                                     <div
-                                        className="bg-purple-600 h-2 rounded-full"
+                                        className="bg-primary h-2 rounded-full"
                                         style={{ width: `${course.progress}%` }}
                                     ></div>
                                 </div>
@@ -115,7 +116,7 @@ const ClientHomeLastProduct = () => {
                                 onClick={() => setSelectedCategory(category)}
                                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300
                   ${category === selectedCategory
-                                        ? 'bg-purple-600 text-white'
+                                        ? 'bg-primary text-white'
                                         : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
                                     }`}
                             >

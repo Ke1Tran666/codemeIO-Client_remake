@@ -7,18 +7,23 @@ import ClientSignUp from "./pages/Client/ClientSignUp/ClientSignUp"
 import ClientSignIn from "./pages/Client/ClientSignIn/ClientSignIn"
 import ClientProduct from "./pages/Client/ClientProduct/ClientProduct"
 import ClientHome from "./pages/Client/ClientHome/ClientHome"
+import ScrollToTop from "./components/ScrollToTop/ScrollToTop"
+import { NotificationProvider } from "./components/Notification/NotificationContext"
 
 const App = () => {
   return (
     <>
-      <Routes>
-        <Route path="/" element={<Client />}>
-          <Route index element={<ClientHome />} />
-          <Route path="/signup" element={<ClientSignUp />} />
-          <Route path="/signin" element={<ClientSignIn />} />
-          <Route path="/product" element={<ClientProduct />} />
-        </Route>
-      </Routes>
+      <ScrollToTop />
+      <NotificationProvider>
+        <Routes>
+          <Route path="/" element={<Client />}>
+            <Route index element={<ClientHome />} />
+            <Route path="/signup" element={<ClientSignUp />} />
+            <Route path="/signin" element={<ClientSignIn />} />
+            <Route path="/product" element={<ClientProduct />} />
+          </Route>
+        </Routes>
+      </NotificationProvider>
     </>
   )
 }

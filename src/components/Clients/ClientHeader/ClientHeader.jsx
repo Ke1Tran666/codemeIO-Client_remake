@@ -40,7 +40,7 @@ const ClientHeader = () => {
                 <div className="flex flex-wrap items-center justify-between py-4">
                     <ElectroLogo />
                     <div className="relative max-w-[300px]">
-                        <div className="relative max-w-[300px] group">
+                        <div className="relative max-w-[300px] group flex-1 md:max-w-[400px]">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9e9ea7] w-4 h-4 pointer-events-none transition-colors group-focus-within:text-[#0d0c22]" />
                             <input
                                 type="text"
