@@ -1,10 +1,13 @@
-'use client';
+'use client'
 import { useState, useEffect } from 'react'
+import axios from 'axios'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 const ClientCarousel = () => {
     const [currentSlide, setCurrentSlide] = useState(0)
-    const slides = [
+    const [courses, setCourses] = useState([])
+
+    const defaultSlides = [
         {
             title: "Get your first job as a UI/UX designer",
             description: "Learn UI/UX design and create a stunning portfolio",
@@ -28,35 +31,57 @@ const ClientCarousel = () => {
         }
     ]
 
+    useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+                const response = await axios.get('https://api.example.com/latest-courses?limit=5')
+                setCourses(response.data)
+            } catch (error) {
+                console.error('Error fetching courses:', error)
+                setCourses(defaultSlides)
+            }
+        }
+
+        fetchCourses()
+    }, [])
+
     const nextSlide = () => {
-        setCurrentSlide((prev) => (prev + 1) % slides.length)
+        setCurrentSlide((prev) => (prev + 1) % courses.length)
     }
 
     const prevSlide = () => {
-        setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
+        setCurrentSlide((prev) => (prev - 1 + courses.length) % courses.length)
     }
 
     useEffect(() => {
         const timer = setInterval(nextSlide, 5000) // Auto-advance every 5 seconds
         return () => clearInterval(timer)
-    }, [])
+    }, [courses.length])
+
+    if (courses.length === 0) {
+        return (
+            <div className="flex justify-center items-center h-[400px] text-2xl font-semibold">
+                Loading...
+            </div>
+        )
+    }
 
     return (
         <div className="relative w-full max-w-[1320px] mx-auto overflow-hidden px-4 rounded-lg">
             <div className="relative h-[400px]">
-                {slides.map((slide, index) => (
+                {courses.map((course, index) => (
                     <div
                         key={index}
                         className={`absolute top-0 left-0 w-full h-full transition-opacity duration-500 ${index === currentSlide ? 'opacity-100' : 'opacity-0'
                             }`}
                     >
-                        <img src={slide.image} alt={slide.title} className="object-cover w-full h-full rounded-lg" />
+                        <img src={course.image} alt={course.title} className="object-cover w-full h-full rounded-lg" />
                         <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white p-6 rounded-b-lg">
-                            <h2 className="text-2xl font-bold mb-2">{slide.title}</h2>
-                            <p className="mb-2">{slide.description}</p>
+                            <h2 className="text-2xl font-bold mb-2">{course.title}</h2>
+                            <p className="mb-2">{course.description}</p>
                             <div className="flex items-center">
-                                <span className="text-xl font-bold mr-2">{slide.price}</span>
-                                <span className="text-sm line-through">{slide.originalPrice}</span>
+                                <span className="text-xl font-bold mr-2">{course.price}</span>
+                                <span className="text-sm line-through">{course.originalPrice}</span>
                             </div>
                         </div>
                     </div>
@@ -76,6 +101,6 @@ const ClientCarousel = () => {
             </button>
         </div>
     )
-};
+}
 
-export default ClientCarousel;
+export default ClientCarousel

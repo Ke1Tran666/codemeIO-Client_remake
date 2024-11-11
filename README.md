@@ -20,3 +20,4 @@ npx tailwindcss -i src/assets/css/input.css -o src/assets/css/output.css --watch
 - React
 - lucide-react
 - react-router-dom
+- axios (call api)
