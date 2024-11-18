@@ -38,7 +38,10 @@ const ClientHeader = () => {
         <header className="bg-white shadow-custom-1 mb-8">
             <div className="mx-auto px-4 max-w-[1320px]">
                 <div className="flex flex-wrap items-center justify-between py-4">
-                    <ElectroLogo />
+
+                    <a href='/' className="flex items-center justify-center gap-2">
+                        <ElectroLogo />
+                    </a>
                     <div className="relative max-w-[300px] hidden md:block">
                         <div className="relative max-w-[300px] group flex-1 md:max-w-[400px]">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9e9ea7] w-4 h-4 pointer-events-none transition-colors group-focus-within:text-[#0d0c22]" />
