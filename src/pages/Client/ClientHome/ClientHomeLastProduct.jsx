@@ -10,7 +10,7 @@ const courses = [
     { id: 5, title: 'AWS Certified Solutions Architect', category: 'Cloud Computing', rating: 4.7, students: 8000, price: 34.99, image: 'https://img-c.udemycdn.com/course/750x422/5914092_588d_2.jpg' },
 ];
 
-const categories = ['All', 'Web Development', 'Programming', 'Data Science', 'Cloud Computing'];
+const categories = ['Tất cả', 'Web Development', 'Programming', 'Data Science', 'Cloud Computing'];
 
 const currentlyLearning = [
     { id: 6, title: 'Advanced React Patterns', progress: 60, image: 'https://repository-images.githubusercontent.com/216153625/41239780-23f6-11ea-8641-8ac9a59db271' },
@@ -50,7 +50,7 @@ const ClientHomeLastProduct = () => {
                 <p className="text-sm text-gray-600 mb-2">{course.category}</p>
                 <div className="flex items-center mb-2">
                     <span className="text-yellow-500 font-bold mr-1">{course.rating}</span>
-                    <span className="text-sm text-gray-500">({course.students.toLocaleString()} students)</span>
+                    <span className="text-sm text-gray-500">({course.students.toLocaleString()} học viên)</span>
                 </div>
                 <p className="font-bold">${course.price.toFixed(2)}</p>
             </div>
@@ -59,10 +59,10 @@ const ClientHomeLastProduct = () => {
 
     return (
         <div className="font-sans max-w-7xl mx-auto py-6">
-            <h1 className="text-3xl font-bold mb-8">Udemy Course Discovery</h1>
+            <h1 className="text-3xl font-bold mb-8">Khám phá khóa học CodemeIO</h1>
 
             <section className="mb-12">
-                <h2 className="text-2xl font-semibold mb-4">Currently Learning</h2>
+                <h2 className="text-2xl font-semibold mb-4">Đang học</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {currentlyLearning.map(course => (
                         <div key={course.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
@@ -75,7 +75,7 @@ const ClientHomeLastProduct = () => {
                                         style={{ width: `${course.progress}%` }}
                                     ></div>
                                 </div>
-                                <p className="text-sm text-gray-600">{course.progress}% complete</p>
+                                <p className="text-sm text-gray-600">{course.progress}% hoàn thành</p>
                             </div>
                         </div>
                     ))}
@@ -83,14 +83,14 @@ const ClientHomeLastProduct = () => {
             </section>
 
             <section className="mb-12">
-                <h2 className="text-2xl font-semibold mb-4">Coming Soon</h2>
+                <h2 className="text-2xl font-semibold mb-4">Sắp ra mắt</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {comingSoon.map(course => (
                         <div key={course.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
                             <img src={course.image} alt={course.title} className="w-full h-40 object-cover" />
                             <div className="p-4">
                                 <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
-                                <p className="text-sm text-gray-600">Release Date: {course.releaseDate}</p>
+                                <p className="text-sm text-gray-600">Ngày phát hành: {course.releaseDate}</p>
                             </div>
                         </div>
                     ))}
@@ -98,7 +98,7 @@ const ClientHomeLastProduct = () => {
             </section>
 
             <section className="mb-12">
-                <h2 className="text-2xl font-semibold mb-4">Featured Courses</h2>
+                <h2 className="text-2xl font-semibold mb-4">Các khóa học nổi bật</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {featured.map(course => (
                         <CourseCard key={course.id} course={course} />
@@ -107,7 +107,7 @@ const ClientHomeLastProduct = () => {
             </section>
 
             <section>
-                <h2 className="text-2xl font-semibold mb-4">All Courses</h2>
+                <h2 className="text-2xl font-semibold mb-4">Tất cả các khóa học</h2>
                 <div className="flex flex-col sm:flex-row justify-between mb-6">
                     <div className="flex flex-wrap gap-2 mb-4 sm:mb-0">
                         {categories.map(category => (
@@ -129,9 +129,9 @@ const ClientHomeLastProduct = () => {
                         onChange={(e) => setSortBy(e.target.value)}
                         className="px-4 py-2 border border-gray-300 rounded-md text-sm"
                     >
-                        <option value="popularity">Most Popular</option>
-                        <option value="rating">Highest Rated</option>
-                        <option value="price">Lowest Price</option>
+                        <option value="popularity">Phổ biến nhất</option>
+                        <option value="rating">Đánh giá cao nhất</option>
+                        <option value="price">Giá thấp nhất</option>
                     </select>
                 </div>
 

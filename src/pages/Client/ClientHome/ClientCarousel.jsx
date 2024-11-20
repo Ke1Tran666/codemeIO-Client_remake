@@ -37,13 +37,15 @@ const ClientCarousel = () => {
         const fetchCourses = async () => {
             try {
                 const response = await axios.get(`${API_URL}/courses`);
-                setCourses(response.data);
+                const latestCourses = response.data
+                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sắp xếp theo thời gian tạo
+                    .slice(-5); // Lấy 5 phần tử đầu tiên
+                setCourses(latestCourses);
             } catch (error) {
                 console.error('Lỗi gọi API:', error);
-                setCourses(defaultSlides); // Sử dụng defaultSlides nếu gặp lỗi
+                setCourses(defaultSlides);
             }
-        }
-
+        };
         fetchCourses();
     }, []);
 
@@ -56,7 +58,7 @@ const ClientCarousel = () => {
     }
 
     useEffect(() => {
-        const timer = setInterval(nextSlide, 5000); // Tự động chuyển slide mỗi 5 giây
+        const timer = setInterval(nextSlide, 5000);
         return () => clearInterval(timer);
     }, [courses.length]);
 

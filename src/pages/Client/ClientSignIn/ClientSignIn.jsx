@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNotification } from '../../../components/Notification/NotificationContext';
-
 import { Eye, EyeOff } from 'lucide-react'; // Import Lucide icons
+import { useNavigate } from 'react-router-dom'; // Import useNavigate từ react-router-dom
+
+const API_URL = 'http://localhost:8080/api';
 
 const ClientSignIn = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -13,6 +15,7 @@ const ClientSignIn = () => {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { showNotification } = useNotification();
+    const navigate = useNavigate(); // Khai báo hook navigate
 
     const togglePasswordVisibility = () => {
         setShowPassword(prev => !prev);
@@ -31,15 +34,23 @@ const ClientSignIn = () => {
         setIsSubmitting(true);
 
         try {
-            const response = await axios.post('YOUR_API_ENDPOINT', formData);
+            const response = await axios.post(`${API_URL}/login`, formData);
             showNotification('success', 'Đăng nhập thành công', 'Tài khoản của bạn đã được tạo.');
             console.log('Đăng nhập thành công', response.data);
-            // Có thể thêm logic chuyển hướng ở đây nếu cần
+
+            // Lưu thông tin người dùng vào localStorage hoặc context nếu cần
+            localStorage.setItem('user', JSON.stringify(response.data)); // Giả sử response.data chứa thông tin người dùng
+
+            // Chờ 3 giây trước khi chuyển hướng
+            setTimeout(() => {
+                navigate('/'); // Chuyển hướng đến trang chủ
+                setIsSubmitting(false); // Đặt lại trạng thái isSubmitting sau khi chuyển hướng
+            }, 3000); // Thời gian chờ 3000ms (3 giây)
+
         } catch (error) {
             showNotification('error', 'Đăng nhập thất bại', 'Đã có lỗi xảy ra. Vui lòng thử lại!');
             console.error('Lỗi khi đăng nhập:', error);
-        } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false); // Đặt lại trạng thái isSubmitting nếu có lỗi
         }
     };
 
