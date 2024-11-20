@@ -1,20 +1,37 @@
 import { useState } from 'react';
-import axios from 'axios'; // Make sure this path is correct
-import { Eye, EyeOff } from 'lucide-react'; // Import Lucide icons
+import axios from 'axios';
+import { Eye, EyeOff } from 'lucide-react';
 import { useNotification } from '../../../components/Notification/NotificationContext';
+import { useNavigate } from 'react-router-dom';
+
+const API_URL = 'http://localhost:8080/api';
+
+const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const DEFAULT_FORM_DATA = {
+    username: '',
+    password: '',
+    fullname: '',
+    email: '',
+    phone: '',
+    gender: '',
+    status: 'Active',
+    userType: 'student',
+    startDate: getCurrentDate()
+};
 
 const ClientSignUp = () => {
     const [showPassword, setShowPassword] = useState(false);
-    const [formData, setFormData] = useState({
-        username: '',
-        password: '',
-        fullName: '',
-        email: '',
-        phone: '',
-        gender: ''
-    });
+    const [formData, setFormData] = useState(DEFAULT_FORM_DATA);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { showNotification } = useNotification(); // Use the notification hook
+    const { showNotification } = useNotification();
+    const navigate = useNavigate();
 
     const togglePasswordVisibility = () => {
         setShowPassword(prev => !prev);
@@ -22,26 +39,41 @@ const ClientSignUp = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prevData => ({
-            ...prevData,
-            [name]: value
-        }));
+        setFormData(prevData => ({ ...prevData, [name]: value }));
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsSubmitting(true);
+        e.preventDefault(); // Ngăn chặn hành vi mặc định của form
+        setIsSubmitting(true); // Đặt trạng thái đang gửi lên true
+
+        // Kiểm tra xem fullname có hợp lệ không
+        if (!formData.fullname) {
+            showNotification('error', 'Đăng ký thất bại', 'Họ và tên không được để trống.');
+            setIsSubmitting(false); // Đặt lại trạng thái nếu có lỗi
+            return;
+        }
 
         try {
-            const response = await axios.post('YOUR_API_ENDPOINT', formData);
+            const response = await axios.post(`${API_URL}/register`, formData);
             showNotification('success', 'Đăng ký thành công', 'Tài khoản của bạn đã được tạo.');
             console.log('Đăng ký thành công', response.data);
-            // Có thể thêm logic chuyển hướng ở đây nếu cần
+
+            // Reset form sau khi đăng ký thành công
+            setFormData(DEFAULT_FORM_DATA);
+
+            // Chờ 3 giây trước khi chuyển hướng
+            setTimeout(() => {
+                navigate('/'); // Chuyển hướng đến trang chủ
+                setIsSubmitting(false); // Đặt lại trạng thái isSubmitting sau khi chuyển hướng
+            }, 3000);
         } catch (error) {
-            showNotification('error', 'Đăng ký thất bại', 'Đã có lỗi xảy ra. Vui lòng thử lại!');
+            if (error.response && error.response.data) {
+                showNotification('error', 'Đăng ký thất bại', error.response.data.message || 'Đã có lỗi xảy ra. Vui lòng thử lại!');
+            } else {
+                showNotification('error', 'Đăng ký thất bại', 'Đã có lỗi xảy ra. Vui lòng thử lại!');
+            }
             console.error('Lỗi khi đăng ký:', error);
-        } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false); // Đặt lại trạng thái nếu có lỗi
         }
     };
 
@@ -91,13 +123,13 @@ const ClientSignUp = () => {
 
                 {/* Họ và tên */}
                 <div>
-                    <label htmlFor="fullName" className="block mb-1">Họ và tên</label>
+                    <label htmlFor="fullname" className="block mb-1">Họ và tên</label>
                     <input
                         placeholder="Họ và tên"
-                        id="fullName"
-                        name="fullName"
+                        id="fullname"
+                        name="fullname"
                         type="text"
-                        value={formData.fullName}
+                        value={formData.fullname}
                         onChange={handleChange}
                         className="w-full bg-white border-none p-4 rounded-lg shadow-[0_10px_10px_-5px_#cff0ff] placeholder-gray-400 focus:outline-none focus:border-[#12b1d1]"
                         required
@@ -151,9 +183,10 @@ const ClientSignUp = () => {
                     </select>
                 </div>
 
+                {/* Nút đăng ký */}
                 <button
                     type="submit"
-                    className="w-full py-3 bg-[#1089d3] text-white rounded-lg mt-6"
+                    className={`w-full py-3 rounded-lg mt-6 ${isSubmitting ? 'bg-gray-400' : 'bg-[#1089d3] text-white'}`}
                     disabled={isSubmitting}
                 >
                     {isSubmitting ? 'Đang đăng ký...' : 'Đăng ký'}
