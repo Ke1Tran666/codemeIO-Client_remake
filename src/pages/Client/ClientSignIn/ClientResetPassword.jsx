@@ -29,7 +29,8 @@ const ClientResetPassword = () => {
             console.log('Đặt lại mật khẩu thành công:', response.data);
             navigate('/signin'); // Chuyển hướng đến trang đăng nhập
         } catch (error) {
-            showNotification('error', 'Lỗi', 'Đã có lỗi xảy ra. Vui lòng thử lại!');
+            const errorMessage = error.response?.data || 'Đã có lỗi xảy ra. Vui lòng thử lại!';
+            showNotification('error', 'Lỗi', errorMessage);
             console.error('Lỗi khi đặt lại mật khẩu:', error);
         } finally {
             setIsSubmitting(false);
