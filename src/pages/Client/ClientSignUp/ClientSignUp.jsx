@@ -4,7 +4,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useNotification } from '../../../components/Notification/NotificationContext';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = 'http://localhost:8080/api';
+const API_URL = 'http://localhost:8081/api';
 
 const getCurrentDate = () => {
     const today = new Date();
@@ -42,17 +42,37 @@ const ClientSignUp = () => {
         setFormData(prevData => ({ ...prevData, [name]: value }));
     };
 
+    const checkEmailExists = async (email) => {
+        try {
+            const response = await axios.get(`${API_URL}/check-email?email=${email}`);
+            return response.data.exists;
+        } catch (error) {
+            console.error('Lỗi khi kiểm tra email:', error);
+            return false; // Trả về false nếu có lỗi
+        }
+    };
+
+    // Trong hàm handleSubmit
     const handleSubmit = async (e) => {
-        e.preventDefault(); // Ngăn chặn hành vi mặc định của form
-        setIsSubmitting(true); // Đặt trạng thái đang gửi lên true
+        e.preventDefault();
+        setIsSubmitting(true);
 
         // Kiểm tra xem fullname có hợp lệ không
         if (!formData.fullname) {
             showNotification('error', 'Đăng ký thất bại', 'Họ và tên không được để trống.');
-            setIsSubmitting(false); // Đặt lại trạng thái nếu có lỗi
+            setIsSubmitting(false);
             return;
         }
 
+        // Kiểm tra xem email đã tồn tại chưa
+        const emailExists = await checkEmailExists(formData.email);
+        if (emailExists) {
+            showNotification('error', 'Đăng ký thất bại', 'Email đã tồn tại.');
+            setIsSubmitting(false);
+            return;
+        }
+
+        // Gửi yêu cầu đăng ký
         try {
             const response = await axios.post(`${API_URL}/register`, formData);
             showNotification('success', 'Đăng ký thành công', 'Tài khoản của bạn đã được tạo.');
@@ -60,20 +80,15 @@ const ClientSignUp = () => {
 
             // Reset form sau khi đăng ký thành công
             setFormData(DEFAULT_FORM_DATA);
-
-            // Chờ 3 giây trước khi chuyển hướng
             setTimeout(() => {
-                navigate('/'); // Chuyển hướng đến trang chủ
-                setIsSubmitting(false); // Đặt lại trạng thái isSubmitting sau khi chuyển hướng
+                navigate('/');
             }, 3000);
         } catch (error) {
-            if (error.response && error.response.data) {
-                showNotification('error', 'Đăng ký thất bại', error.response.data.message || 'Đã có lỗi xảy ra. Vui lòng thử lại!');
-            } else {
-                showNotification('error', 'Đăng ký thất bại', 'Đã có lỗi xảy ra. Vui lòng thử lại!');
-            }
+            const errorMessage = error.response?.data?.message || 'Đã có lỗi xảy ra. Vui lòng thử lại!';
+            showNotification('error', 'Đăng ký thất bại', errorMessage);
             console.error('Lỗi khi đăng ký:', error);
-            setIsSubmitting(false); // Đặt lại trạng thái nếu có lỗi
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -192,6 +207,11 @@ const ClientSignUp = () => {
                     {isSubmitting ? 'Đang đăng ký...' : 'Đăng ký'}
                 </button>
             </form>
+            <div className="text-center mt-4">
+                <a href="/signin" className="text-xs text-[#0099ff] transition-all duration-200 hover:underline hover:underline-offset-4">
+                    Có tài khoản rồi. Đăng nhập
+                </a>
+            </div>
         </div>
     );
 };

@@ -9,6 +9,7 @@ import ClientProduct from "./pages/Client/ClientProduct/ClientProduct"
 import ClientHome from "./pages/Client/ClientHome/ClientHome"
 import ScrollToTop from "./components/ScrollToTop/ScrollToTop"
 import { NotificationProvider } from "./components/Notification/NotificationContext"
+import ClientResetPassword from "./pages/Client/ClientSignIn/ClientResetPassword"
 
 const App = () => {
   return (
@@ -20,7 +21,9 @@ const App = () => {
             <Route index element={<ClientHome />} />
             <Route path="/signup" element={<ClientSignUp />} />
             <Route path="/signin" element={<ClientSignIn />} />
+            <Route path="/reset-password" element={<ClientResetPassword />} />
             <Route path="/product" element={<ClientProduct />} />
+
           </Route>
         </Routes>
       </NotificationProvider>
