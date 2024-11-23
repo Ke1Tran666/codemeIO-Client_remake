@@ -1,18 +1,31 @@
-// import
 import { useState, useEffect, useRef } from "react";
-import { Bell, CircleUserRound, Search } from "lucide-react"
-
-// logo
+import { Bell, CircleUserRound, Search } from "lucide-react";
 import ElectroLogo from "../../ElectroLogo/ElectroLogo";
 import CategoryMenu from "./CategoryMenu";
 
 const ClientHeader = () => {
-
     const [isAccountDropdownOpen, setAccountDropdownOpen] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [username, setUsername] = useState('');
     const accountRef = useRef(null);
+
+    // Kiểm tra trạng thái đăng nhập khi component được mount
+    useEffect(() => {
+        const user = localStorage.getItem('user');
+        if (user) {
+            const parsedUser = JSON.parse(user);
+            setIsLoggedIn(true);
+            setUsername(parsedUser.username);
+        }
+    }, []);
 
     const toggleAccountDropdown = () => {
         setAccountDropdownOpen(!isAccountDropdownOpen);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('user');
+        setIsLoggedIn(false);
     };
 
     const handleClickOutside = (event) => {
@@ -28,7 +41,6 @@ const ClientHeader = () => {
             document.removeEventListener("mousedown", handleClickOutside);
         }
 
-        // Cleanup the event listener on component unmount
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
@@ -38,7 +50,6 @@ const ClientHeader = () => {
         <header className="bg-white shadow-custom-1 mb-8">
             <div className="mx-auto px-4 max-w-[1320px]">
                 <div className="flex flex-wrap items-center justify-between py-4">
-
                     <a href='/' className="flex items-center justify-center gap-2">
                         <ElectroLogo />
                     </a>
@@ -75,17 +86,33 @@ const ClientHeader = () => {
                                     <CircleUserRound className="w-6 h-6" />
                                 </button>
                                 <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                    Tài khoản
+                                    {isLoggedIn ? `Hello, ${username}` : 'Tài khoản'}
                                 </span>
 
                                 {isAccountDropdownOpen && (
                                     <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg py-2 z-10">
-                                        <a href="/signin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            Đăng nhập
-                                        </a>
-                                        <a href="/signup" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            Đăng ký
-                                        </a>
+                                        {isLoggedIn ? (
+                                            <>
+                                                <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                    Học tập
+                                                </a>
+                                                <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                    Hồ sơ
+                                                </a>
+                                                <button onClick={handleLogout} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
+                                                    Đăng xuất
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <a href="/signin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                    Đăng nhập
+                                                </a>
+                                                <a href="/signup" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                    Đăng ký
+                                                </a>
+                                            </>
+                                        )}
                                     </div>
                                 )}
                             </div>

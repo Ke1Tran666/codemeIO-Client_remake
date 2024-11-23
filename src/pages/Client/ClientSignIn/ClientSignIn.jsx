@@ -47,6 +47,7 @@ const ClientSignIn = () => {
 
             setTimeout(() => {
                 navigate('/');
+                window.location.reload();
                 setIsSubmitting(false);
             }, 3000);
 
