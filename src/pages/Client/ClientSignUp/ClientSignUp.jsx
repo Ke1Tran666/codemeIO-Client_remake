@@ -77,11 +77,13 @@ const ClientSignUp = () => {
             const response = await axios.post(`${API_URL}/register`, formData);
             showNotification('success', 'Đăng ký thành công', 'Tài khoản của bạn đã được tạo.');
             console.log('Đăng ký thành công', response.data);
+            localStorage.setItem('user', JSON.stringify(response.data));
 
             // Reset form sau khi đăng ký thành công
             setFormData(DEFAULT_FORM_DATA);
             setTimeout(() => {
                 navigate('/');
+                window.location.reload();
             }, 3000);
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Đã có lỗi xảy ra. Vui lòng thử lại!';
