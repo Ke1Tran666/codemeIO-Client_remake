@@ -24,8 +24,7 @@ const App = () => {
             <Route path="/signin" element={<ClientSignIn />} />
             <Route path="/reset-password" element={<ClientResetPassword />} />
             <Route path="/profile" element={<ClientUserProfile />} />
-            <Route path="/product" element={<ClientProduct />} />
-
+            <Route path="/product/:courseId" element={<ClientProduct />} />
           </Route>
         </Routes>
       </NotificationProvider>

@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
-import ClientProduct from '../ClientProduct/ClientProduct';
+import { Link } from 'react-router-dom';
 
 const API_URL = 'http://localhost:8081/api';
 
@@ -81,36 +81,27 @@ const ClientHomeLastProduct = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [userData, setUserData] = useState(null);
 
-    const fetchCourses = async () => {
-        try {
-            const response = await axios.get(`${API_URL}/courses`);
-            console.log('Courses fetched:', response.data);
-            setCourses(response.data);
-        } catch (error) {
-            console.error('Error fetching courses:', error);
-        }
-    };
-
-    const fetchCategories = async () => {
-        try {
-            const response = await axios.get(`${API_URL}/categories`);
-            setCategories(response.data);
-        } catch (error) {
-            console.error('Error fetching categories:', error);
-        }
-    };
-
     useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [coursesRes, categoriesRes] = await Promise.all([
+                    axios.get(`${API_URL}/courses`),
+                    axios.get(`${API_URL}/categories`)
+                ]);
+                setCourses(coursesRes.data);
+                setCategories(categoriesRes.data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+
+        fetchData();
+
         const storedUserData = localStorage.getItem('user');
         if (storedUserData) {
             setUserData(JSON.parse(storedUserData));
             setIsLoggedIn(true);
-        } else {
-            setIsLoggedIn(false);
         }
-
-        fetchCategories();
-        fetchCourses();
     }, []);
 
     const filteredCourses = courses.filter(course =>
@@ -122,8 +113,9 @@ const ClientHomeLastProduct = () => {
         .slice(0, 6);
 
     const CourseCard = (course) => (
-        <a href="#"
-            onClick={() => <ClientProduct />}
+        <Link
+            to={`/product/${course.courseId}`}
+            state={{ course }}
             className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
         >
             <img src={course.imageCourses} alt={course.title} className="w-full h-40 object-cover" />
@@ -138,9 +130,8 @@ const ClientHomeLastProduct = () => {
                     </div>
                 </div>
             </div>
-        </a>
+        </Link>
     );
-
     return (
         <div className="font-sans max-w-7xl mx-auto py-6">
             <h1 className="text-3xl font-bold mb-8">Khám phá khóa học CodemeIO</h1>
