@@ -9,9 +9,8 @@ const ClientProduct = () => {
     // Cuộn lên đầu trang khi component được tải
     useEffect(() => {
         window.scrollTo(0, 0);
-    }, []); // Chạy một lần khi component mount
+    }, []);
 
-    // Nếu không có dữ liệu khóa học, hiển thị thông báo
     if (!course) {
         return <div className="text-center">Khóa học không tồn tại.</div>;
     }
@@ -30,7 +29,7 @@ const ClientProduct = () => {
                                 ))}
                             </div>
                             <span className="text-lg font-semibold">{course.rating.toFixed(1)}</span>
-                            <span className="text-muted-foreground ml-2">(Đánh giá từ {course.rating * 100} học viên)</span>
+                            <span className="text-muted-foreground ml-2">(Đánh giá từ {course.totalStudents} học viên)</span>
                         </div>
                         <div className="border rounded-lg p-6 mb-8">
                             <h2 className="text-xl font-semibold mb-4">Bạn sẽ học được gì</h2>
@@ -56,9 +55,9 @@ const ClientProduct = () => {
                     </div>
                     <div className="lg:col-span-1">
                         <div className="border rounded-lg p-6 sticky top-4 bg-white">
+                            <img src={course.imageCourses} alt={course.title} className="mt-4 w-full rounded" />
                             <div className="mb-4">
                                 <span className="text-3xl font-bold">${course.price.toFixed(2)}</span>
-                                <span className="line-through text-muted-foreground ml-2">$199.99</span>
                             </div>
                             <button className="w-full mb-4 bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded">Mua ngay</button>
                             <p className="text-center text-sm mb-4">Chính sách hoàn tiền trong 30 ngày</p>
