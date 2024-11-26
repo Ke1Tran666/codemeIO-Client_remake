@@ -26,6 +26,7 @@ const ClientHeader = () => {
     const handleLogout = () => {
         localStorage.removeItem('user');
         setIsLoggedIn(false);
+        window.location.reload();
     };
 
     const handleClickOutside = (event) => {

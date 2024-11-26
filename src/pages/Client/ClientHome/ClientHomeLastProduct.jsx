@@ -1,58 +1,142 @@
-/* eslint-disable react/prop-types */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Star } from 'lucide-react';
 import ClientProduct from '../ClientProduct/ClientProduct';
 
-const courses = [
-    { id: 1, title: 'React for Beginners', category: 'Web Development', rating: 4.7, students: 10000, price: 19.99, image: 'https://media.licdn.com/dms/image/D4D12AQHLOphoHIjmoA/article-cover_image-shrink_720_1280/0/1680313616595?e=2147483647&v=beta&t=MDjk4m7S2o2GJeVZGRSsA8WkmumgdYuQiTZfQ2bRkBk' },
-    { id: 2, title: 'Python Masterclass', category: 'Programming', rating: 4.8, students: 15000, price: 24.99, image: 'https://cdn.fs.teachablecdn.com/ju5fq6mRwOVwoMkb4B0g' },
-    { id: 3, title: 'Machine Learning A-Z', category: 'Data Science', rating: 4.6, students: 12000, price: 29.99, image: 'https://img-c.udemycdn.com/course/750x422/950390_270f_3.jpg' },
-    { id: 4, title: 'JavaScript: The Complete Guide', category: 'Web Development', rating: 4.9, students: 20000, price: 14.99, image: 'https://pictures.abebooks.com/isbn/9781565922341-us.jpg' },
-    { id: 5, title: 'AWS Certified Solutions Architect', category: 'Cloud Computing', rating: 4.7, students: 8000, price: 34.99, image: 'https://img-c.udemycdn.com/course/750x422/5914092_588d_2.jpg' },
+const API_URL = 'http://localhost:8081/api';
+
+const defaultCourses = [
+    {
+        courseId: 1,
+        title: 'Khóa học Lập trình JavaScript cơ bản',
+        description: 'Khóa học dành cho người mới bắt đầu với JavaScript.',
+        price: 29.99,
+        imageCourses: 'path_to_image1.jpg',
+        category: { categoryId: 1 },
+        rating: 4.5
+    },
+    {
+        courseId: 2,
+        title: 'Khóa học Thiết kế UX/UI',
+        description: 'Khóa học giúp bạn hiểu về thiết kế trải nghiệm người dùng.',
+        price: 39.99,
+        imageCourses: 'path_to_image2.jpg',
+        category: { categoryId: 2 },
+        rating: 4.7
+    },
+    {
+        courseId: 3,
+        title: 'Khóa học Marketing kỹ thuật số',
+        description: 'Khóa học giúp bạn nắm vững các kỹ thuật marketing online.',
+        price: 49.99,
+        imageCourses: 'path_to_image3.jpg',
+        category: { categoryId: 3 },
+        rating: 4.3
+    },
+    {
+        courseId: 4,
+        title: 'Khóa học Lập trình Python',
+        description: 'Khóa học dành cho người mới bắt đầu với Python.',
+        price: 34.99,
+        imageCourses: 'path_to_image4.jpg',
+        category: { categoryId: 1 },
+        rating: 4.8
+    },
+    {
+        courseId: 5,
+        title: 'Khóa học Thiết kế đồ họa',
+        description: 'Khóa học về thiết kế đồ họa và nghệ thuật số.',
+        price: 44.99,
+        imageCourses: 'path_to_image5.jpg',
+        category: { categoryId: 2 },
+        rating: 4.6
+    },
+    {
+        courseId: 6,
+        title: 'Khóa học AI cơ bản',
+        description: 'Khóa học giới thiệu về trí tuệ nhân tạo.',
+        price: 59.99,
+        imageCourses: 'path_to_image6.jpg',
+        category: { categoryId: 3 },
+        rating: 4.9
+    }
 ];
 
-const categories = ['Tất cả', 'Web Development', 'Programming', 'Data Science', 'Cloud Computing'];
+const defaultCategories = [
+    { categoryId: 1, categoryName: 'Lập trình', description: 'Các khóa học về lập trình.' },
+    { categoryId: 2, categoryName: 'Thiết kế', description: 'Khóa học về thiết kế đồ họa và UX/UI.' },
+    { categoryId: 3, categoryName: 'Marketing', description: 'Khóa học về marketing kỹ thuật số.' }
+];
 
+// Dữ liệu mẫu cho các khóa học khác
 const currentlyLearning = [
-    { id: 6, title: 'Advanced React Patterns', progress: 60, image: 'https://repository-images.githubusercontent.com/216153625/41239780-23f6-11ea-8641-8ac9a59db271' },
-    { id: 7, title: 'Data Structures in Python', progress: 30, image: 'https://media.geeksforgeeks.org/wp-content/uploads/20211021164218/pythondatastructuresmin.png' },
-];
-
-const comingSoon = [
-    { id: 8, title: 'Blockchain Fundamentals', releaseDate: '2023-08-15', image: 'https://media.licdn.com/dms/image/D5612AQGCmFLhbMBehg/article-cover_image-shrink_720_1280/0/1677769391978?e=2147483647&v=beta&t=yV2TNuKB9IWKBGWfcifbDkFEj6PDIeVOh-nAs25us-k' },
-    { id: 9, title: 'AI Ethics and Governance', releaseDate: '2023-09-01', image: 'https://www.lumenova.ai/images/intersection-between-ai-ethics-ai-governance.jpg' },
-];
-
-const featured = [
-    { id: 10, title: 'Full Stack Web Development', category: 'Web Development', rating: 4.9, students: 25000, price: 29.99, image: 'https://miro.medium.com/v2/resize:fit:1400/0*cl7fc6pt1MHjIF4K.png' },
-    { id: 11, title: 'Data Science Bootcamp', category: 'Data Science', rating: 4.8, students: 18000, price: 39.99, image: 'https://img-b.udemycdn.com/course/750x422/1754098_e0df_3.jpg' },
+    { id: 1, title: 'Khóa học Lập trình Python', image: 'path_to_image4.jpg', progress: 70 },
+    { id: 2, title: 'Khóa học Thiết kế đồ họa', image: 'path_to_image5.jpg', progress: 40 }
 ];
 
 const ClientHomeLastProduct = () => {
-    const [selectedCategory, setSelectedCategory] = useState('All');
-    const [sortBy, setSortBy] = useState('popularity');
+    const [courses, setCourses] = useState(defaultCourses);
+    const [categories, setCategories] = useState(defaultCategories);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userData, setUserData] = useState(null);
+
+    const fetchCourses = async () => {
+        try {
+            const response = await axios.get(`${API_URL}/courses`);
+            console.log('Courses fetched:', response.data);
+            setCourses(response.data);
+        } catch (error) {
+            console.error('Error fetching courses:', error);
+        }
+    };
+
+    const fetchCategories = async () => {
+        try {
+            const response = await axios.get(`${API_URL}/categories`);
+            setCategories(response.data);
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+        }
+    };
+
+    useEffect(() => {
+        const storedUserData = localStorage.getItem('user');
+        if (storedUserData) {
+            setUserData(JSON.parse(storedUserData));
+            setIsLoggedIn(true);
+        } else {
+            setIsLoggedIn(false);
+        }
+
+        fetchCategories();
+        fetchCourses();
+    }, []);
 
     const filteredCourses = courses.filter(course =>
-        selectedCategory === 'All' || course.category === selectedCategory
+        selectedCategory === null || course.category.categoryId === selectedCategory
     );
 
-    const sortedCourses = [...filteredCourses].sort((a, b) => {
-        if (sortBy === 'popularity') return b.students - a.students;
-        if (sortBy === 'rating') return b.rating - a.rating;
-        if (sortBy === 'price') return a.price - b.price;
-        return 0;
-    });
+    const featuredCourses = [...courses]
+        .sort((a, b) => b.rating - a.rating)
+        .slice(0, 6);
 
-    const CourseCard = ({ course }) => (
-        <a href={<ClientProduct />} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-            <img src={course.image} alt={course.title} className="w-full h-40 object-cover" />
+    const CourseCard = (course) => (
+        <a href="#"
+            onClick={() => <ClientProduct />}
+            className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
+        >
+            <img src={course.imageCourses} alt={course.title} className="w-full h-40 object-cover" />
             <div className="p-4">
                 <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
-                <p className="text-sm text-gray-600 mb-2">{course.category}</p>
-                <div className="flex items-center mb-2">
-                    <span className="text-yellow-500 font-bold mr-1">{course.rating}</span>
-                    <span className="text-sm text-gray-500">({course.students.toLocaleString()} học viên)</span>
+                <p className="text-sm text-gray-600 mb-2">{course.description}</p>
+                <div className="flex gap-2">
+                    <p className="font-bold">${course.price.toFixed(2)}</p>
+                    <div className="flex items-center space-x-1">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <p className="text-sm font-medium text-yellow-500">{course.rating.toFixed(2)} </p>
+                    </div>
                 </div>
-                <p className="font-bold">${course.price.toFixed(2)}</p>
             </div>
         </a>
     );
@@ -61,47 +145,31 @@ const ClientHomeLastProduct = () => {
         <div className="font-sans max-w-7xl mx-auto py-6">
             <h1 className="text-3xl font-bold mb-8">Khám phá khóa học CodemeIO</h1>
 
-            <section className="mb-12">
-                <h2 className="text-2xl font-semibold mb-4">Đang học</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {currentlyLearning.map(course => (
-                        <div key={course.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                            <img src={course.image} alt={course.title} className="w-full h-40 object-cover" />
-                            <div className="p-4">
-                                <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
-                                <div className="bg-gray-200 rounded-full h-2 mb-2">
-                                    <div
-                                        className="bg-primary h-2 rounded-full"
-                                        style={{ width: `${course.progress}%` }}
-                                    ></div>
+            {isLoggedIn && userData && ( // Kiểm tra trạng thái đăng nhập
+                <section className="mb-12">
+                    <h2 className="text-2xl font-semibold mb-4">Đang học</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {currentlyLearning.map(course => (
+                            <div key={course.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                                <img src={course.image} alt={course.title} className="w-full h-40 object-cover" />
+                                <div className="p-4">
+                                    <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
+                                    <div className="bg-gray-200 rounded-full h-2 mb-2">
+                                        <div className="bg-primary h-2 rounded-full" style={{ width: `${course.progress}%` }}></div>
+                                    </div>
+                                    <p className="text-sm text-gray-600">{course.progress}% hoàn thành</p>
                                 </div>
-                                <p className="text-sm text-gray-600">{course.progress}% hoàn thành</p>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            </section>
+                        ))}
+                    </div>
+                </section>
+            )}
 
             <section className="mb-12">
-                <h2 className="text-2xl font-semibold mb-4">Sắp ra mắt</h2>
+                <h2 className="text-2xl font-semibold mb-4">Khóa học nổi bật</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {comingSoon.map(course => (
-                        <div key={course.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                            <img src={course.image} alt={course.title} className="w-full h-40 object-cover" />
-                            <div className="p-4">
-                                <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
-                                <p className="text-sm text-gray-600">Ngày phát hành: {course.releaseDate}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            <section className="mb-12">
-                <h2 className="text-2xl font-semibold mb-4">Các khóa học nổi bật</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {featured.map(course => (
-                        <CourseCard key={course.id} course={course} />
+                    {featuredCourses.map(course => (
+                        <CourseCard key={course.courseId} {...course} />
                     ))}
                 </div>
             </section>
@@ -110,35 +178,33 @@ const ClientHomeLastProduct = () => {
                 <h2 className="text-2xl font-semibold mb-4">Tất cả các khóa học</h2>
                 <div className="flex flex-col sm:flex-row justify-between mb-6">
                     <div className="flex flex-wrap gap-2 mb-4 sm:mb-0">
+                        <button
+                            onClick={() => setSelectedCategory(null)}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300
+                            ${selectedCategory === null ? 'bg-primary text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
+                        >
+                            Tất cả
+                        </button>
                         {categories.map(category => (
                             <button
-                                key={category}
-                                onClick={() => setSelectedCategory(category)}
+                                key={category.categoryId}
+                                onClick={() => setSelectedCategory(category.categoryId)}
                                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300
-                  ${category === selectedCategory
-                                        ? 'bg-primary text-white'
-                                        : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                                    }`}
-                            >
-                                {category}
+                                ${category.categoryId === selectedCategory ? 'bg-primary text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}>
+                                {category.categoryName}
                             </button>
                         ))}
                     </div>
-                    <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                        className="px-4 py-2 border border-gray-300 rounded-md text-sm"
-                    >
-                        <option value="popularity">Phổ biến nhất</option>
-                        <option value="rating">Đánh giá cao nhất</option>
-                        <option value="price">Giá thấp nhất</option>
-                    </select>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {sortedCourses.map(course => (
-                        <CourseCard key={course.id} course={course} />
-                    ))}
+                    {filteredCourses.length > 0 ? (
+                        filteredCourses.map(course => (
+                            <CourseCard key={course.courseId} {...course} />
+                        ))
+                    ) : (
+                        <p className="text-center">Không có khóa học nào trong danh mục này.</p>
+                    )}
                 </div>
             </section>
         </div>
