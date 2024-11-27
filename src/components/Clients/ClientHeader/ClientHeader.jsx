@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Bell, CircleUserRound, Search } from "lucide-react";
+import { Bell, CircleUserRound, Search, ShoppingCart } from "lucide-react"; // Thêm ShoppingCart
 import ElectroLogo from "../../ElectroLogo/ElectroLogo";
 import CategoryMenu from "./CategoryMenu";
 
@@ -9,7 +9,6 @@ const ClientHeader = () => {
     const [username, setUsername] = useState('');
     const accountRef = useRef(null);
 
-    // Kiểm tra trạng thái đăng nhập khi component được mount
     useEffect(() => {
         const user = localStorage.getItem('user');
         if (user) {
@@ -67,6 +66,19 @@ const ClientHeader = () => {
                     <CategoryMenu />
                     <div className="hidden md:block">
                         <div className="flex flex-wrap items-center gap-2">
+                            {isLoggedIn && ( // Hiển thị nút Giỏ hàng nếu người dùng đã đăng nhập
+                                <div className="relative group">
+                                    <button
+                                        type="button"
+                                        className="download-button flex items-center gap-2 bg-[#f8f9fa] rounded-lg p-3 hover:shadow-[0_0.5em_1.5em_-0.5em_rgba(88,71,116,0.627)] active:shadow-[0_0.3em_1em_-0.5em_rgba(88,71,116,0.627)] relative overflow-hidden"
+                                    >
+                                        <ShoppingCart className="w-6 h-6" />
+                                    </button>
+                                    <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                                        Giỏ hàng
+                                    </span>
+                                </div>
+                            )}
                             <div className="relative group">
                                 <button
                                     type="button"

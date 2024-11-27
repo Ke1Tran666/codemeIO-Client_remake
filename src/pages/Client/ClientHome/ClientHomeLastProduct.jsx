@@ -68,15 +68,10 @@ const defaultCategories = [
     { categoryId: 3, categoryName: 'Marketing', description: 'Khóa học về marketing kỹ thuật số.' }
 ];
 
-// Dữ liệu mẫu cho các khóa học khác
-const currentlyLearning = [
-    { id: 1, title: 'Khóa học Lập trình Python', image: 'path_to_image4.jpg', progress: 70 },
-    { id: 2, title: 'Khóa học Thiết kế đồ họa', image: 'path_to_image5.jpg', progress: 40 }
-];
-
 const ClientHomeLastProduct = () => {
     const [courses, setCourses] = useState(defaultCourses);
     const [categories, setCategories] = useState(defaultCategories);
+    const [currentlyLearning, setCurrentlyLearning] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [userData, setUserData] = useState(null);
@@ -101,8 +96,19 @@ const ClientHomeLastProduct = () => {
         if (storedUserData) {
             setUserData(JSON.parse(storedUserData));
             setIsLoggedIn(true);
+            fetchCurrentlyLearning(JSON.parse(storedUserData).userId);
         }
     }, []);
+
+    const fetchCurrentlyLearning = async (userId) => {
+        try {
+            const response = await axios.get(`${API_URL}/enrollments/student/${userId}/courses`);
+            setCurrentlyLearning(response.data);
+            console.log(response.data);
+        } catch (error) {
+            console.error('Error fetching currently learning courses:', error);
+        }
+    };
 
     const filteredCourses = courses.filter(course =>
         selectedCategory === null || course.category.categoryId === selectedCategory
@@ -132,23 +138,25 @@ const ClientHomeLastProduct = () => {
             </div>
         </Link>
     );
+
     return (
         <div className="font-sans max-w-7xl mx-auto py-6">
             <h1 className="text-3xl font-bold mb-8">Khám phá khóa học CodemeIO</h1>
 
             {isLoggedIn && userData && ( // Kiểm tra trạng thái đăng nhập
                 <section className="mb-12">
-                    <h2 className="text-2xl font-semibold mb-4">Đang học</h2>
+                    <h2 className="text-2xl font-semibold mb-4">Khóa học bạn đang học</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {currentlyLearning.map(course => (
-                            <div key={course.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                                <img src={course.image} alt={course.title} className="w-full h-40 object-cover" />
+                            <div key={course.courseId} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+                                <img src={course.imageCourses} alt={course.title} className="w-full h-40 object-cover" />
                                 <div className="p-4">
                                     <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
-                                    <div className="bg-gray-200 rounded-full h-2 mb-2">
-                                        <div className="bg-primary h-2 rounded-full" style={{ width: `${course.progress}%` }}></div>
+                                    <p className="text-sm text-gray-600 mb-2">{course.description}</p>
+                                    <div className="flex items-center space-x-1">
+                                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                        <p className="text-sm font-medium text-yellow-500">{course.rating.toFixed(2)} </p>
                                     </div>
-                                    <p className="text-sm text-gray-600">{course.progress}% hoàn thành</p>
                                 </div>
                             </div>
                         ))}

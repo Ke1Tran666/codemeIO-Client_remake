@@ -22,7 +22,7 @@ const DEFAULT_FORM_DATA = {
     phone: '',
     gender: '',
     status: 'Active',
-    userType: 'student',
+    userType: 'Student',
     startDate: getCurrentDate()
 };
 
