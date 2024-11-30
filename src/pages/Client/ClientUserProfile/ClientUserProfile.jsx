@@ -32,7 +32,7 @@ const ClientUserProfile = () => {
         } else {
             showNotification('error', 'Lỗi tải dữ liệu', 'Không tìm thấy thông tin người dùng.');
         }
-    }, []);
+    }, [showNotification]);
 
     // Sự kiện click bên ngoài để đóng chỉnh sửa
     useEffect(() => {

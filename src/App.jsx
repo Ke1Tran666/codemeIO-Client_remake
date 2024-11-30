@@ -12,6 +12,7 @@ import { NotificationProvider } from "./components/Notification/NotificationCont
 import ClientResetPassword from "./pages/Client/ClientSignIn/ClientResetPassword"
 import ClientUserProfile from "./pages/Client/ClientUserProfile/ClientUserProfile"
 import ClientCourseInterface from "./pages/Client/ClientCourseInterface/ClientCourseInterface"
+import ClientLearningProfile from "./pages/Client/ClientLearningProfile/ClientLearningProfile"
 
 const App = () => {
   return (
@@ -25,8 +26,9 @@ const App = () => {
             <Route path="/signin" element={<ClientSignIn />} />
             <Route path="/reset-password" element={<ClientResetPassword />} />
             <Route path="/profile" element={<ClientUserProfile />} />
+            <Route path="/learningProfile" element={<ClientLearningProfile />} />
             <Route path="/product/:courseId" element={<ClientProduct />} />
-            <Route path="/product/lesson" element={<ClientCourseInterface />} />
+            <Route path="/product/:courseId/lesson" element={<ClientCourseInterface />} />
           </Route>
         </Routes>
       </NotificationProvider>

@@ -106,7 +106,7 @@ const ClientHeader = () => {
                                     <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg py-2 z-10">
                                         {isLoggedIn ? (
                                             <>
-                                                <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                <a href="/learningProfile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                     Học tập
                                                 </a>
                                                 <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">

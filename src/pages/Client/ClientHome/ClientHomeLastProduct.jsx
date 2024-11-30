@@ -140,7 +140,7 @@ const ClientHomeLastProduct = () => {
     );
 
     return (
-        <div className="font-sans max-w-7xl mx-auto py-6">
+        <div className="font-sans max-w-[1320px] mx-auto py-6">
             <h1 className="text-3xl font-bold mb-8">Khám phá khóa học CodemeIO</h1>
 
             {isLoggedIn && userData && ( // Kiểm tra trạng thái đăng nhập
