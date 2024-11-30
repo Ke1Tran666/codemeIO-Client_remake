@@ -2,10 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNotification } from '../../../components/Notification/NotificationContext';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-
-const API_URL = 'http://localhost:8081';
-const API_URL_API = `${API_URL}/api`;
-
+import { BASE_URL, BASE_URL_API } from '../../../api/config';
 
 const ClientLearningProfile = () => {
     const [user, setUser] = useState({ username: '', email: '', photo: '' });
@@ -25,7 +22,7 @@ const ClientLearningProfile = () => {
 
     const fetchUserCourses = async (userId) => {
         try {
-            const response = await axios.get(`${API_URL_API}/enrollments/student/${userId}/courses`);
+            const response = await axios.get(`${BASE_URL_API}/enrollments/student/${userId}/courses`);
             setOwnedCourses(response.data);
         } catch (error) {
             console.error('Error fetching user courses:', error);
@@ -56,7 +53,7 @@ const ClientLearningProfile = () => {
             <h1 className="text-3xl font-bold mb-8 text-blue-600">Hồ sơ học tập</h1>
 
             <div className="mb-8 border border-gray-200 rounded-lg p-4 flex items-center">
-                <img src={user.photo ? `${API_URL}${user.photo}` : `/placeholder.svg`} alt="User Avatar" className="w-16 h-16 rounded-full mr-4" />
+                <img src={user.photo ? `${BASE_URL}${user.photo}` : `/placeholder.svg`} alt="User Avatar" className="w-16 h-16 rounded-full mr-4" />
                 <div>
                     <h2 className="text-xl font-semibold">{user.username}</h2>
                     <p className="text-gray-600">{user.email}</p>

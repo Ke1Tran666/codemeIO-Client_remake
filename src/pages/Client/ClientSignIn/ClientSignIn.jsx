@@ -3,8 +3,7 @@ import axios from 'axios';
 import { useNotification } from '../../../components/Notification/NotificationContext';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-const API_URL = 'http://localhost:8081/api';
+import { BASE_URL_API } from '../../../api/config';
 
 const ClientSignIn = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -29,10 +28,10 @@ const ClientSignIn = () => {
         setIsSubmitting(true);
 
         try {
-            const response = await axios.post(`${API_URL}/login`, formData);
+            const response = await axios.post(`${BASE_URL_API}/login`, formData);
             showNotification('success', 'Đăng nhập thành công', 'Tài khoản của bạn đã được đăng nhập.');
             localStorage.setItem('user', JSON.stringify(response.data));
-            const coursesResponse = await axios.get(`${API_URL}/enrollments/student/${response.data.userId}/courses`);
+            const coursesResponse = await axios.get(`${BASE_URL_API}/enrollments/student/${response.data.userId}/courses`);
             localStorage.setItem('courses', JSON.stringify(coursesResponse.data));
 
             setTimeout(() => {
@@ -57,7 +56,7 @@ const ClientSignIn = () => {
         }
 
         try {
-            await axios.post(`${API_URL}/forgot-password`, { email });
+            await axios.post(`${BASE_URL_API}/forgot-password`, { email });
             showNotification('success', 'Email đã được gửi', 'Vui lòng kiểm tra email của bạn để đặt lại mật khẩu.');
             setIsForgotPassword(false);
         } catch (error) {

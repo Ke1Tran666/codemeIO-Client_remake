@@ -2,9 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNotification } from '../../../components/Notification/NotificationContext';
-
-const API_URL = 'http://localhost:8081';
-const API_URL_USER = `${API_URL}/api/user`;
+import { BASE_URL, BASE_URL_API } from '../../../api/config'
 
 const ClientUserProfile = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -76,7 +74,7 @@ const ClientUserProfile = () => {
             const updatedUser = { ...userData, [field]: userData[field] };
             localStorage.setItem('user', JSON.stringify(updatedUser));
 
-            const response = await axios.put(`${API_URL_USER}/${userData.userId}`, { [field]: userData[field] });
+            const response = await axios.put(`${BASE_URL_API}/${userData.userId}`, { [field]: userData[field] });
 
             if (response.status === 200) {
                 setIsEditing(prev => ({ ...prev, [field]: false }));
@@ -95,7 +93,7 @@ const ClientUserProfile = () => {
             formData.append('file', file);
 
             try {
-                const response = await axios.put(`${API_URL_USER}/${userData.userId}/image`, formData, {
+                const response = await axios.put(`${BASE_URL_API}/${userData.userId}/image`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
@@ -171,7 +169,7 @@ const ClientUserProfile = () => {
 
             <div className="mt-5 space-y-4">
                 <div className="flex flex-col items-center">
-                    <img src={`${API_URL}${userData.photo}`} alt="Profile" className="w-32 h-32 rounded-full mb-2" />
+                    <img src={`${BASE_URL}${userData.photo}`} alt="Profile" className="w-32 h-32 rounded-full mb-2" />
                     <input
                         type="file"
                         accept="image/*"

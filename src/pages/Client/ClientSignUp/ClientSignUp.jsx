@@ -3,8 +3,7 @@ import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNotification } from '../../../components/Notification/NotificationContext';
 import { useNavigate } from 'react-router-dom';
-
-const API_URL = 'http://localhost:8081/api';
+import { BASE_URL_API } from '../../../api/config'
 
 const getCurrentDate = () => {
     const today = new Date();
@@ -44,7 +43,7 @@ const ClientSignUp = () => {
 
     const checkEmailExists = async (email) => {
         try {
-            const response = await axios.get(`${API_URL}/check-email?email=${email}`);
+            const response = await axios.get(`${BASE_URL_API}/check-email?email=${email}`);
             return response.data.exists;
         } catch (error) {
             console.error('Lỗi khi kiểm tra email:', error);
@@ -74,7 +73,7 @@ const ClientSignUp = () => {
 
         // Gửi yêu cầu đăng ký
         try {
-            const response = await axios.post(`${API_URL}/register`, formData);
+            const response = await axios.post(`${BASE_URL_API}/register`, formData);
             showNotification('success', 'Đăng ký thành công', 'Tài khoản của bạn đã được tạo.');
             console.log('Đăng ký thành công', response.data);
             localStorage.setItem('user', JSON.stringify(response.data));

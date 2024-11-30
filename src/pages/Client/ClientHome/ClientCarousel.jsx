@@ -2,8 +2,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react'
-
-const API_URL = 'http://localhost:8081/api';
+import { BASE_URL_API } from '../../../api/config'
 
 const ClientCarousel = () => {
     const [currentSlide, setCurrentSlide] = useState(0)
@@ -36,7 +35,7 @@ const ClientCarousel = () => {
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                const response = await axios.get(`${API_URL}/courses`);
+                const response = await axios.get(`${BASE_URL_API}/courses`);
                 const latestCourses = response.data
                     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sắp xếp theo thời gian tạo
                     .slice(-5); // Lấy 5 phần tử đầu tiên

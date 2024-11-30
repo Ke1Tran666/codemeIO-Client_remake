@@ -2,8 +2,7 @@ import axios from 'axios';
 import { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const API_URL = 'http://localhost:8081/api';
+import { BASE_URL_API } from '../../../api/config'
 
 const defaultCourses = [
     {
@@ -80,8 +79,8 @@ const ClientHomeLastProduct = () => {
         const fetchData = async () => {
             try {
                 const [coursesRes, categoriesRes] = await Promise.all([
-                    axios.get(`${API_URL}/courses`),
-                    axios.get(`${API_URL}/categories`)
+                    axios.get(`${BASE_URL_API}/courses`),
+                    axios.get(`${BASE_URL_API}/categories`)
                 ]);
                 setCourses(coursesRes.data);
                 setCategories(categoriesRes.data);
@@ -102,7 +101,7 @@ const ClientHomeLastProduct = () => {
 
     const fetchCurrentlyLearning = async (userId) => {
         try {
-            const response = await axios.get(`${API_URL}/enrollments/student/${userId}/courses`);
+            const response = await axios.get(`${BASE_URL_API}/enrollments/student/${userId}/courses`);
             setCurrentlyLearning(response.data);
             console.log(response.data);
         } catch (error) {

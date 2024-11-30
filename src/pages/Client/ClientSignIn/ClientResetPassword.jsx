@@ -2,8 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNotification } from '../../../components/Notification/NotificationContext';
 import { useNavigate } from 'react-router-dom';
-
-const API_URL = 'http://localhost:8081/api';
+import { BASE_URL_API } from '../../../api/config'
 
 const ClientResetPassword = () => {
     const [token, setToken] = useState('');
@@ -24,7 +23,7 @@ const ClientResetPassword = () => {
         }
 
         try {
-            const response = await axios.post(`${API_URL}/reset-password`, { token, newPassword });
+            const response = await axios.post(`${BASE_URL_API}/reset-password`, { token, newPassword });
             showNotification('success', 'Thành công', 'Mật khẩu đã được cập nhật.');
             console.log('Đặt lại mật khẩu thành công:', response.data);
             navigate('/signin'); // Chuyển hướng đến trang đăng nhập
