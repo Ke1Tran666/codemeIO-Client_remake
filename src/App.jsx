@@ -27,8 +27,8 @@ const App = () => {
             <Route path="/reset-password" element={<ClientResetPassword />} />
             <Route path="/profile" element={<ClientUserProfile />} />
             <Route path="/learningProfile" element={<ClientLearningProfile />} />
-            <Route path="/product/:courseId" element={<ClientProduct />} />
-            <Route path="/product/:courseId/lesson" element={<ClientCourseInterface />} />
+            <Route path="/course/:courseId" element={<ClientProduct />} />
+            <Route path="/course/:courseId/lessons" element={<ClientCourseInterface />} />
           </Route>
         </Routes>
       </NotificationProvider>

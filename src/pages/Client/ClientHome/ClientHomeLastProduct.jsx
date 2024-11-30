@@ -119,7 +119,7 @@ const ClientHomeLastProduct = () => {
 
     const CourseCard = (course) => (
         <Link
-            to={`/product/${course.courseId}`}
+            to={`/course/${course.courseId}`}
             state={{ course }}
             className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
         >

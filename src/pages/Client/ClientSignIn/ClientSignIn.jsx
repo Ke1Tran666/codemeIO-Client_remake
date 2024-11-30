@@ -31,8 +31,6 @@ const ClientSignIn = () => {
             const response = await axios.post(`${BASE_URL_API}/login`, formData);
             showNotification('success', 'Đăng nhập thành công', 'Tài khoản của bạn đã được đăng nhập.');
             localStorage.setItem('user', JSON.stringify(response.data));
-            const coursesResponse = await axios.get(`${BASE_URL_API}/enrollments/student/${response.data.userId}/courses`);
-            localStorage.setItem('courses', JSON.stringify(coursesResponse.data));
 
             setTimeout(() => {
                 navigate('/');

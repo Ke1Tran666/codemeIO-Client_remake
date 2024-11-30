@@ -1,68 +1,73 @@
-import { useState } from 'react';
-import { Book, CheckCircle, ChevronRight, Play, FileText, Upload } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom'; // Import useParams để lấy tham số từ URL
+import { Book, ChevronRight, Play } from 'lucide-react';
+
+import { BASE_URL_API } from '../../../api/config'
 
 const CourseInterface = () => {
+    const { courseId } = useParams(); // Lấy courseId từ URL
     const [selectedTab, setSelectedTab] = useState('lessons');
+    const [course, setCourse] = useState(null);
+    const [selectedLesson, setSelectedLesson] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    // Mock course data
-    const course = {
-        title: "Introduction to React",
-        description: "Learn the basics of React, including components, state, and props.",
-        lessons: [
-            { id: 1, title: "Getting Started with React", completed: true, videoUrl: "https://www.example.com/video1.mp4" },
-            { id: 2, title: "Components and JSX", completed: true, videoUrl: "https://www.example.com/video2.mp4" },
-            { id: 3, title: "State and Props", completed: false, videoUrl: "https://www.example.com/video3.mp4" },
-            { id: 4, title: "Hooks and Effect", completed: false, videoUrl: "https://www.example.com/video4.mp4" },
-            { id: 5, title: "Routing in React", completed: false, videoUrl: "https://www.example.com/video5.mp4" },
-        ],
-        exercises: [
-            { id: 1, title: "Setup React Environment", lessonId: 1 },
-            { id: 2, title: "Create Your First Component", lessonId: 1 },
-            { id: 3, title: "Create a Functional Component", lessonId: 2 },
-            { id: 4, title: "Create a Class Component", lessonId: 2 },
-            { id: 5, title: "Implement State in a Component", lessonId: 3 },
-            { id: 6, title: "Pass Props Between Components", lessonId: 3 },
-        ],
-        submissions: [
-            { id: 1, title: "Environment Screenshot", lessonId: 1 },
-            { id: 2, title: "First Component Code", lessonId: 1 },
-            { id: 3, title: "Functional Component Code", lessonId: 2 },
-            { id: 4, title: "Class Component Code", lessonId: 2 },
-            { id: 5, title: "State Implementation Code", lessonId: 3 },
-            { id: 6, title: "Props Usage Code", lessonId: 3 },
-        ],
+    useEffect(() => {
+        const fetchCourseData = async () => {
+            try {
+                const response = await fetch(`${BASE_URL_API}/lessons/course/${courseId}`);
+                const data = await response.json();
+                setCourse(data);
+                console.log(data);
+                setSelectedLesson(data[0].courseId); // Chọn bài học đầu tiên
+                setLoading(false);
+            } catch (error) {
+                console.error('Error fetching course data:', error);
+                setLoading(false);
+            }
+        };
+
+        fetchCourseData();
+    }, [courseId]);
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (!course) {
+        return <div>No course data found.</div>;
+    }
+
+    const getYouTubeEmbedUrl = (videoId) => {
+        return `https://www.youtube.com/embed/${videoId}`;
     };
 
-    const [selectedLesson, setSelectedLesson] = useState(course.lessons[0].id);
+    const currentLesson = course.find(lesson => lesson.lessonId === selectedLesson) || course[0];
+    const videoId = currentLesson.linkVideo || null;
+    console.log(currentLesson);
 
-    const completedLessons = course.lessons.filter(lesson => lesson.completed).length;
-    const progress = (completedLessons / course.lessons.length) * 100;
-
-    const currentLesson = course.lessons.find(lesson => lesson.id === selectedLesson) || course.lessons[0];
 
     const renderTabContent = () => {
         switch (selectedTab) {
             case 'lessons':
                 return (
                     <div className="space-y-4">
-                        {course.lessons.map((lesson) => (
+                        {course.map((lesson) => (
                             <div
-                                key={lesson.id}
-                                className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedLesson === lesson.id
+                                key={lesson.lessonId}
+                                className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedLesson === lesson.lessonId
                                     ? 'bg-blue-50 border-blue-500'
                                     : 'hover:bg-gray-50'
                                     }`}
-                                onClick={() => setSelectedLesson(lesson.id)}
+                                onClick={() => setSelectedLesson(lesson.lessonId)}
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center space-x-3">
                                         <Book className="w-5 h-5 text-blue-500" />
-                                        <span className={lesson.completed ? 'text-gray-500' : 'font-medium'}>
+                                        <span className='font-medium'>
                                             {lesson.title}
                                         </span>
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                        {lesson.completed && <CheckCircle className="w-5 h-5 text-green-500" />}
                                         <ChevronRight className="w-5 h-5 text-gray-400" />
                                     </div>
                                 </div>
@@ -72,34 +77,16 @@ const CourseInterface = () => {
                 );
             case 'exercises':
                 return (
-                    <div className="space-y-4">
-                        {course.exercises.map((exercise) => (
-                            <div key={exercise.id} className="p-4 border rounded-lg hover:bg-gray-50">
-                                <div className="flex items-center space-x-3">
-                                    <FileText className="w-5 h-5 text-blue-500" />
-                                    <span>{exercise.title}</span>
-                                </div>
-                                <div className="mt-2 text-sm text-gray-500">
-                                    Lesson: {course.lessons.find(l => l.id === exercise.lessonId)?.title}
-                                </div>
-                            </div>
-                        ))}
+                    <div className="p-4 text-center">
+                        <h2 className="text-lg font-semibold">Đang phát triển...</h2>
+                        <p className="text-gray-500">Phần bài tập hiện đang được phát triển. Vui lòng quay lại sau.</p>
                     </div>
                 );
             case 'submissions':
                 return (
-                    <div className="space-y-4">
-                        {course.submissions.map((submission) => (
-                            <div key={submission.id} className="p-4 border rounded-lg hover:bg-gray-50">
-                                <div className="flex items-center space-x-3">
-                                    <Upload className="w-5 h-5 text-blue-500" />
-                                    <span>{submission.title}</span>
-                                </div>
-                                <div className="mt-2 text-sm text-gray-500">
-                                    Lesson: {course.lessons.find(l => l.id === submission.lessonId)?.title}
-                                </div>
-                            </div>
-                        ))}
+                    <div className="p-4 text-center">
+                        <h2 className="text-lg font-semibold">Đang phát triển...</h2>
+                        <p className="text-gray-500">Phần nộp bài hiện đang được phát triển. Vui lòng quay lại sau.</p>
                     </div>
                 );
             default:
@@ -114,14 +101,15 @@ const CourseInterface = () => {
                 {/* Video Section */}
                 <div className="w-full md:w-2/3">
                     <div className="aspect-w-16 aspect-h-9 bg-gray-200 rounded-lg mb-4">
-                        {currentLesson.videoUrl ? (
-                            <video
-                                src={currentLesson.videoUrl}
-                                controls
-                                className="w-full h-full object-cover rounded-lg"
-                            >
-                                Your browser does not support the video tag.
-                            </video>
+                        {videoId ? (
+                            <iframe
+                                src={getYouTubeEmbedUrl(videoId)}
+                                title={currentLesson.title}
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                className="w-full h-full rounded-lg"
+                            ></iframe>
                         ) : (
                             <div className="flex items-center justify-center h-full">
                                 <Play className="w-16 h-16 text-gray-400" />
@@ -129,24 +117,11 @@ const CourseInterface = () => {
                         )}
                     </div>
                     <h2 className="text-xl font-semibold mb-2">{currentLesson.title}</h2>
-                    <p className="text-gray-600 mb-4">{course.description}</p>
+                    <p className="text-gray-600 mb-4">{currentLesson.content}</p>
                 </div>
 
                 {/* Course Progress and Tabs */}
                 <div className="w-full md:w-1/3">
-                    <div className="mb-6 bg-gray-100 p-4 rounded-lg">
-                        <h2 className="text-xl font-semibold mb-2">Course Progress</h2>
-                        <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div
-                                className="bg-blue-600 h-2.5 rounded-full"
-                                style={{ width: `${progress}%` }}
-                            ></div>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-2">
-                            {completedLessons} of {course.lessons.length} lessons completed
-                        </p>
-                    </div>
-
                     <div className="mb-4">
                         <div className="flex border-b">
                             <button
@@ -178,4 +153,3 @@ const CourseInterface = () => {
 };
 
 export default CourseInterface;
-

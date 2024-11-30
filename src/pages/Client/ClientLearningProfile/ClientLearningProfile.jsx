@@ -32,7 +32,7 @@ const ClientLearningProfile = () => {
 
     const CourseCard = (course) => (
         <Link
-            to={`/product/${course.courseId}/lesson`}
+            to={`/course/${course.courseId}/lessons`}
             state={{ course }}
             className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow duration-300"
         >
