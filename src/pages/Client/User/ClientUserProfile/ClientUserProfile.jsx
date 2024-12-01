@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
-import { useNotification } from '../../../components/Notification/NotificationContext';
-import { BASE_URL, BASE_URL_API } from '../../../api/config'
+import { useNotification } from '../../../../components/Notification/NotificationContext';
+import { BASE_URL, BASE_URL_API } from '../../../../api/config'
 
 const ClientUserProfile = () => {
     const [showPassword, setShowPassword] = useState(false);

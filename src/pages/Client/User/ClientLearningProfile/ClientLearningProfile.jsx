@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useNotification } from '../../../components/Notification/NotificationContext';
+import { useNotification } from '../../../../components/Notification/NotificationContext';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { BASE_URL, BASE_URL_API } from '../../../api/config';
+import { BASE_URL, BASE_URL_API } from '../../../../api/config';
 
 const ClientLearningProfile = () => {
     const [user, setUser] = useState({ username: '', email: '', photo: '' });

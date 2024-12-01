@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Bell, CircleUserRound, Search, ShoppingCart } from "lucide-react"; // Thêm ShoppingCart
+import { useLocation } from "react-router-dom"; // Thêm import này
+import { Bell, CircleUserRound, Search, ShoppingCart } from "lucide-react";
 import ElectroLogo from "../../ElectroLogo/ElectroLogo";
 import CategoryMenu from "./CategoryMenu";
 
 const ClientHeader = () => {
+    const location = useLocation(); // Sử dụng useLocation để lấy thông tin địa chỉ
+    const isAdmin = location.pathname.includes("/admin"); // Kiểm tra xem đường dẫn có chứa /admin không
+
     const [isAccountDropdownOpen, setAccountDropdownOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [username, setUsername] = useState('');
@@ -53,20 +57,22 @@ const ClientHeader = () => {
                     <a href='/' className="flex items-center justify-center gap-2">
                         <ElectroLogo />
                     </a>
-                    <div className="relative max-w-[300px] hidden md:block">
-                        <div className="relative max-w-[300px] group flex-1 md:max-w-[400px]">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9e9ea7] w-4 h-4 pointer-events-none transition-colors group-focus-within:text-[#0d0c22]" />
-                            <input
-                                type="text"
-                                className="w-full h-10 px-4 pl-10 rounded-lg bg-[#f3f3f4] text-[#0d0c22] placeholder-[#9e9ea7] transition duration-300 ease-in-out border-2 border-transparent focus:outline-none focus:border-[rgba(44,143,255,0.4)] focus:bg-white focus:shadow-[0_0_0_4px_rgba(44,143,255,0.1)] hover:border-[rgba(44,143,255,0.4)] hover:bg-white"
-                                placeholder="Bạn tìm gì..."
-                            />
+                    {!isAdmin && ( // Chỉ hiển thị khi không ở chế độ admin
+                        <div className="relative max-w-[300px] hidden md:block">
+                            <div className="relative max-w-[300px] group flex-1 md:max-w-[400px]">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9e9ea7] w-4 h-4 pointer-events-none transition-colors group-focus-within:text-[#0d0c22]" />
+                                <input
+                                    type="text"
+                                    className="w-full h-10 px-4 pl-10 rounded-lg bg-[#f3f3f4] text-[#0d0c22] placeholder-[#9e9ea7] transition duration-300 ease-in-out border-2 border-transparent focus:outline-none focus:border-[rgba(44,143,255,0.4)] focus:bg-white focus:shadow-[0_0_0_4px_rgba(44,143,255,0.1)] hover:border-[rgba(44,143,255,0.4)] hover:bg-white"
+                                    placeholder="Bạn tìm gì..."
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <CategoryMenu />
+                    )}
+                    {!isAdmin && <CategoryMenu />} {/* Chỉ hiển thị khi không ở chế độ admin */}
                     <div className="hidden md:block">
                         <div className="flex flex-wrap items-center gap-2">
-                            {isLoggedIn && ( // Hiển thị nút Giỏ hàng nếu người dùng đã đăng nhập
+                            {isLoggedIn && (
                                 <div className="relative group">
                                     <button
                                         type="button"

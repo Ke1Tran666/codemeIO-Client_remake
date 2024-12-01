@@ -3,16 +3,17 @@ import Client from "./pages/Client"
 
 import './assets/css/output.css'
 import './assets/css/App.css'
-import ClientSignUp from "./pages/Client/ClientSignUp/ClientSignUp"
-import ClientSignIn from "./pages/Client/ClientSignIn/ClientSignIn"
+import ClientSignUp from "./pages/Client/Auth/ClientSignUp/ClientSignUp"
+import ClientSignIn from "./pages/Client/Auth/ClientSignIn/ClientSignIn"
 import ClientProduct from "./pages/Client/ClientProduct/ClientProduct"
 import ClientHome from "./pages/Client/ClientHome/ClientHome"
 import ScrollToTop from "./components/ScrollToTop/ScrollToTop"
 import { NotificationProvider } from "./components/Notification/NotificationContext"
-import ClientResetPassword from "./pages/Client/ClientSignIn/ClientResetPassword"
-import ClientUserProfile from "./pages/Client/ClientUserProfile/ClientUserProfile"
+import ClientResetPassword from "./pages/Client/Auth/ClientSignIn/ClientResetPassword"
+import ClientUserProfile from "./pages/Client/User/ClientUserProfile/ClientUserProfile"
 import ClientCourseInterface from "./pages/Client/ClientCourseInterface/ClientCourseInterface"
-import ClientLearningProfile from "./pages/Client/ClientLearningProfile/ClientLearningProfile"
+import ClientLearningProfile from "./pages/Client/User/ClientLearningProfile/ClientLearningProfile"
+import ClientAdmin from "./pages/ClientAdmin"
 
 const App = () => {
   return (
@@ -29,6 +30,9 @@ const App = () => {
             <Route path="/learningProfile" element={<ClientLearningProfile />} />
             <Route path="/course/:courseId" element={<ClientProduct />} />
             <Route path="/course/:courseId/lessons" element={<ClientCourseInterface />} />
+          </Route>
+          <Route path="/admin" element={<ClientAdmin />}>
+
           </Route>
         </Routes>
       </NotificationProvider>
