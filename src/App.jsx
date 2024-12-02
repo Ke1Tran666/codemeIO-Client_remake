@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom"
+import { Navigate, Route, Routes } from "react-router-dom"
 import Client from "./pages/Client"
 
 import './assets/css/output.css'
@@ -14,6 +14,10 @@ import ClientUserProfile from "./pages/Client/User/ClientUserProfile/ClientUserP
 import ClientCourseInterface from "./pages/Client/ClientCourseInterface/ClientCourseInterface"
 import ClientLearningProfile from "./pages/Client/User/ClientLearningProfile/ClientLearningProfile"
 import ClientAdmin from "./pages/ClientAdmin"
+import ClientCategory from "./pages/Client/Admin/ClientCategory/ClientCategory"
+import ClientOverview from "./pages/Client/Admin/ClientOverview/ClientOverview"
+import ClientCourses from "./pages/Client/Admin/ClientCourses/ClientCourses"
+import ClientRoles from "./pages/Client/Admin/ClientRoles/ClientRoles"
 
 const App = () => {
   return (
@@ -32,7 +36,11 @@ const App = () => {
             <Route path="/course/:courseId/lessons" element={<ClientCourseInterface />} />
           </Route>
           <Route path="/admin" element={<ClientAdmin />}>
-
+            <Route index element={<Navigate replace to="/admin/overview" />} />
+            <Route path="/admin/overview" element={<ClientOverview />} />
+            <Route path="/admin/category" element={<ClientCategory />} />
+            <Route path="/admin/courses" element={<ClientCourses />} />
+            <Route path="/admin/roles" element={<ClientRoles />} />
           </Route>
         </Routes>
       </NotificationProvider>
