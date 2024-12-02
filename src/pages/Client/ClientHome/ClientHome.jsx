@@ -3,7 +3,7 @@ import ClientHomeLastProduct from "./ClientHomeLastProduct"
 
 const ClientHome = () => {
     return (
-        <main className="container mx-auto">
+        <main className="container mx-auto mt-8">
             <ClientCarousel />
             <ClientHomeLastProduct />
         </main>

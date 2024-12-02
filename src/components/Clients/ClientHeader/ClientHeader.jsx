@@ -51,7 +51,7 @@ const ClientHeader = () => {
     }, [isAccountDropdownOpen]);
 
     return (
-        <header className="bg-white shadow-custom-1 mb-8">
+        <header className="bg-white shadow-custom-1">
             <div className="mx-auto px-4 max-w-[1320px]">
                 <div className="flex flex-wrap items-center justify-between py-4">
                     <a href='/' className="flex items-center justify-center gap-2">

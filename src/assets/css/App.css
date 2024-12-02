@@ -1,132 +1,131 @@
 /* download-button */
 .download-button::before,
 .download-button::after {
-    content: "";
-    width: 4px;
-    height: 40%;
-    background-color: rgba(44, 143, 255, 1);
-    position: absolute;
-    transition: all 0.6s;
+  content: "";
+  width: 4px;
+  height: 40%;
+  background-color: rgba(44, 143, 255, 1);
+  position: absolute;
+  transition: all 0.6s;
 }
 
 .download-button::before {
-    left: 0;
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
+  left: 0;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
 }
 
 .download-button::after {
-    right: 0;
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
+  right: 0;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
 }
 
 .download-button:hover::before,
 .download-button:hover::after {
-    height: 60%;
+  height: 60%;
 }
 
 /* underline-hover */
 .underline-hover::after {
-    content: '';
-    display: block;
-    width: 0;
-    height: 2px;
-    /* Độ dày của gạch chân */
-    background: currentColor;
-    transition: width 0.3s ease;
+  content: "";
+  display: block;
+  width: 0;
+  height: 2px;
+  /* Độ dày của gạch chân */
+  background: currentColor;
+  transition: width 0.3s ease;
 }
 
 .underline-hover:hover::after {
-    width: 100%;
+  width: 100%;
 }
 
 /* socialContainer */
 
 .socialContainer {
-    width: 48px;
-    height: 48px;
-    background-color: rgb(44, 44, 44);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    transition-duration: .5s;
+  width: 48px;
+  height: 48px;
+  background-color: rgb(44, 44, 44);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition-duration: 0.5s;
 }
 
 .socialContainerWrapper {
-    display: flex;
-    gap: 12px;
+  display: flex;
+  gap: 12px;
 }
 
 /* Điều chỉnh kích thước icon cho màn hình nhỏ */
 @media screen and (max-width: 1279.98px) {
-    .socialContainerWrapper {
-        flex-wrap: wrap;
-        justify-content: start;
-        /* Căn giữa các icon khi xuống dòng */
-    }
+  .socialContainerWrapper {
+    flex-wrap: wrap;
+    justify-content: start;
+    /* Căn giữa các icon khi xuống dòng */
+  }
 }
 
-
 @media (max-width: 640px) {
-    .socialContainer {
-        width: 36px;
-        height: 36px;
-    }
+  .socialContainer {
+    width: 36px;
+    height: 36px;
+  }
 
-    .socialSvg {
-        width: 14px;
-    }
+  .socialSvg {
+    width: 14px;
+  }
 }
 
 /* Instagram */
 .containerOne:hover {
-    background-color: #d62976;
+  background-color: #d62976;
 }
 
 /* Twitter */
 .containerTwo:hover {
-    background-color: #00acee;
+  background-color: #00acee;
 }
 
 /* LinkedIn */
 .containerThree:hover {
-    background-color: #0072b1;
+  background-color: #0072b1;
 }
 
 /* WhatsApp */
 .containerFour:hover {
-    background-color: #128C7E;
+  background-color: #128c7e;
 }
 
 /* Kích hoạt hiệu ứng thu nhỏ khi bấm */
 .socialContainer:active {
-    transform: scale(0.9);
-    transition-duration: .5s;
+  transform: scale(0.9);
+  transition-duration: 0.5s;
 }
 
 .socialSvg {
-    width: 17px;
+  width: 17px;
 }
 
 .socialSvg path {
-    fill: rgb(255, 255, 255);
+  fill: rgb(255, 255, 255);
 }
 
 /* Hiệu ứng animation khi hover */
 .socialContainer:hover .socialSvg {
-    animation: slide-in-top 0.5s both;
+  animation: slide-in-top 0.5s both;
 }
 
 @keyframes slide-in-top {
-    0% {
-        transform: translateY(-50px);
-        opacity: 0;
-    }
+  0% {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
 
-    100% {
-        transform: translateY(0);
-        opacity: 1;
-    }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
