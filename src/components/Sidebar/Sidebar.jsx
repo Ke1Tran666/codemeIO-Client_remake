@@ -1,32 +1,73 @@
-import { BarChart, Users, BookOpen, Settings } from 'lucide-react';
-import { useState } from 'react';
+import { LayoutDashboard, BookOpen, FileText, Users, UserCircle, GraduationCap, School, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
 
-const Sidebar = () => {
-    const [activeItem, setActiveItem] = useState('/admin');
-
+// eslint-disable-next-line react/prop-types
+function Sidebar({ activeMenu, setActiveMenu, isUserMenuOpen, setIsUserMenuOpen }) {
     const menuItems = [
-        { href: '/admin', icon: BarChart, label: 'Dashboard' },
-        { href: '/admin/courses', icon: BookOpen, label: 'Courses' },
-        { href: '/admin/users', icon: Users, label: 'Users' },
-        { href: '/admin/settings', icon: Settings, label: 'Settings' },
+        { name: 'Overview', icon: LayoutDashboard },
+        { name: 'Courses', icon: BookOpen },
+        { name: 'Category', icon: FileText },
+        {
+            name: 'User',
+            icon: Users,
+            subItems: [
+                { name: 'Student', icon: GraduationCap },
+                { name: 'Instructor', icon: School },
+                { name: 'Admin', icon: ShieldCheck },
+            ],
+        },
+        { name: 'Roles', icon: UserCircle },
     ];
 
+    function handleMenuClick(menuName) {
+        if (menuName === 'User') {
+            setIsUserMenuOpen(!isUserMenuOpen);
+        } else {
+            setActiveMenu(menuName);
+            if (menuName !== 'Student' && menuName !== 'Instructor' && menuName !== 'Admin') {
+                setIsUserMenuOpen(false);
+            }
+        }
+    }
+
     return (
-        <div className="bg-white text-black w-64 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out shadow-custom-1">
+        <div className="w-64 bg-white text-black px-2">
+            <div className="p-4">
+                <h1 className="text-2xl font-bold">Course Admin</h1>
+            </div>
             <nav className="flex flex-col gap-2">
                 {menuItems.map((item) => (
-                    <a
-                        key={item.href}
-                        href={item.href}
-                        className={`flex items-center py-2.5 px-4 rounded transition duration-200 
-                            ${activeItem === item.href
-                                ? 'bg-blue-500 text-white'
-                                : 'hover:bg-blue-100 hover:text-gray-600'}`}
-                        onClick={() => setActiveItem(item.href)}
-                    >
-                        <item.icon className="mr-2" size={20} />
-                        {item.label}
-                    </a>
+                    <div key={item.name} className="flex flex-col">
+                        <button
+                            className={`flex items-center justify-between w-full px-4 py-2 text-left hover:bg-blue-100 hover:text-gray-600 rounded-lg ${activeMenu === item.name || (item.name === 'User' && isUserMenuOpen) ? 'bg-blue-500 text-white' : ''
+                                }`}
+                            onClick={() => handleMenuClick(item.name)}
+                        >
+                            <div className="flex items-center">
+                                <item.icon className="mr-2 h-5 w-5" />
+                                {item.name}
+                            </div>
+                            {item.subItems && (
+                                isUserMenuOpen ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />
+                            )}
+                        </button>
+                        {item.subItems && isUserMenuOpen && (
+                            <div className=" p-2 bg-slate-100 rounded-lg">
+                                <div className="flex flex-col gap-2">
+                                    {item.subItems.map((subItem) => (
+                                        <button
+                                            key={subItem.name}
+                                            className={`flex items-center w-full px-4 py-2 text-left hover:bg-blue-100 hover:text-gray-600 rounded-lg ${activeMenu === subItem.name ? 'bg-blue-500 text-white' : ''
+                                                }`}
+                                            onClick={() => handleMenuClick(subItem.name)}
+                                        >
+                                            <subItem.icon className="mr-2 h-5 w-5" />
+                                            {subItem.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 ))}
             </nav>
         </div>
