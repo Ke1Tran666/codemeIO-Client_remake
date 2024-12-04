@@ -74,7 +74,7 @@ const ClientUserProfile = () => {
             const updatedUser = { ...userData, [field]: userData[field] };
             localStorage.setItem('user', JSON.stringify(updatedUser));
 
-            const response = await axios.put(`${BASE_URL_API}/${userData.userId}`, { [field]: userData[field] });
+            const response = await axios.put(`${BASE_URL_API}/users/${userData.userId}`, { [field]: userData[field] });
 
             if (response.status === 200) {
                 setIsEditing(prev => ({ ...prev, [field]: false }));
@@ -93,7 +93,7 @@ const ClientUserProfile = () => {
             formData.append('file', file);
 
             try {
-                const response = await axios.put(`${BASE_URL_API}/${userData.userId}/image`, formData, {
+                const response = await axios.put(`${BASE_URL_API}/users/${userData.userId}/image`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }

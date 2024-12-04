@@ -7,9 +7,9 @@ import { useNotification } from '../../../../components/Notification/Notificatio
 const ClientCategory = () => {
     const [categories, setCategories] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [newCategory, setNewCategory] = useState({ categoryName: '', description: '' });
-    const [editingCategory, setEditingCategory] = useState(null);
-    const [showAddForm, setShowAddForm] = useState(false);
+    const [currentCategory, setCurrentCategory] = useState({ categoryName: '', description: '' });
+    const [showForm, setShowForm] = useState(false);
+    const [formAction, setFormAction] = useState('add'); // 'add' hoặc 'edit'
     const { showNotification } = useNotification();
 
     useEffect(() => {
@@ -26,11 +26,10 @@ const ClientCategory = () => {
         fetchCategories();
     }, [showNotification]);
 
-    // Tìm kiếm danh mục
     const handleSearch = async (term) => {
         try {
             const response = await axios.get(`${BASE_URL_API}/categories/search`, {
-                params: { name: term }
+                params: { name: term },
             });
             setCategories(response.data);
         } catch (error) {
@@ -44,35 +43,31 @@ const ClientCategory = () => {
         category.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const handleAddCategory = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post(`${BASE_URL_API}/categories`, newCategory);
-            setCategories([...categories, response.data]);
-            setNewCategory({ categoryName: '', description: '' });
-            setShowAddForm(false);
-            showNotification('success', 'Thành công', 'Danh mục đã được thêm.');
+            let response;
+            if (formAction === 'add') {
+                response = await axios.post(`${BASE_URL_API}/categories`, currentCategory);
+                setCategories([...categories, response.data]);
+                showNotification('success', 'Thành công', 'Danh mục đã được thêm.');
+            } else if (formAction === 'edit') {
+                response = await axios.put(`${BASE_URL_API}/categories/${currentCategory.categoryId}`, currentCategory);
+                setCategories(categories.map(cat => cat.categoryId === currentCategory.categoryId ? response.data : cat));
+                showNotification('success', 'Thành công', 'Danh mục đã được cập nhật.');
+            }
+            setCurrentCategory({ categoryName: '', description: '' });
+            setShowForm(false);
         } catch (error) {
-            console.error('Error adding category:', error);
-            showNotification('error', 'Lỗi thêm danh mục', 'Không thể thêm danh mục mới.');
+            console.error('Error:', error);
+            showNotification('error', 'Lỗi', 'Không thể thực hiện thao tác.');
         }
     };
 
     const handleEditCategory = (category) => {
-        setEditingCategory(category);
-    };
-
-    const handleUpdateCategory = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await axios.put(`${BASE_URL_API}/categories/${editingCategory.categoryId}`, editingCategory);
-            setCategories(categories.map(c => c.categoryId === editingCategory.categoryId ? response.data : c));
-            setEditingCategory(null);
-            showNotification('success', 'Thành công', 'Danh mục đã được cập nhật.');
-        } catch (error) {
-            console.error('Error updating category:', error);
-            showNotification('error', 'Lỗi cập nhật danh mục', 'Không thể cập nhật danh mục.');
-        }
+        setCurrentCategory({ categoryName: category.categoryName, description: category.description, categoryId: category.categoryId });
+        setFormAction('edit');
+        setShowForm(true);
     };
 
     const handleDeleteCategory = async (categoryId) => {
@@ -111,13 +106,17 @@ const ClientCategory = () => {
                         value={searchTerm}
                         onChange={(e) => {
                             setSearchTerm(e.target.value);
-                            handleSearch(e.target.value); // Gọi hàm tìm kiếm khi người dùng gõ
+                            handleSearch(e.target.value);
                         }}
                     />
                     <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 </div>
                 <button
-                    onClick={() => setShowAddForm(true)}
+                    onClick={() => {
+                        setShowForm(true);
+                        setFormAction('add');
+                        setCurrentCategory({ categoryName: '', description: '' });
+                    }}
                     className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center"
                 >
                     <Plus className="h-5 w-5 mr-2" />
@@ -125,33 +124,33 @@ const ClientCategory = () => {
                 </button>
             </div>
 
-            {showAddForm && (
+            {showForm && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start pt-20 z-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-                        <h3 className="text-xl font-bold mb-4">Add New Category</h3>
-                        <form onSubmit={handleAddCategory} className="space-y-4">
+                        <h3 className="text-xl font-bold mb-4">{formAction === 'add' ? 'Add New Category' : 'Edit Category'}</h3>
+                        <form onSubmit={handleSubmit} className="space-y-4">
                             <input
                                 type="text"
                                 placeholder="Category Name"
                                 className="w-full px-4 py-2 border rounded-lg"
-                                value={newCategory.categoryName}
-                                onChange={(e) => setNewCategory({ ...newCategory, categoryName: e.target.value })}
+                                value={currentCategory.categoryName}
+                                onChange={(e) => setCurrentCategory({ ...currentCategory, categoryName: e.target.value })}
                                 required
                             />
                             <input
                                 type="text"
                                 placeholder="Description"
                                 className="w-full px-4 py-2 border rounded-lg"
-                                value={newCategory.description}
-                                onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
+                                value={currentCategory.description}
+                                onChange={(e) => setCurrentCategory({ ...currentCategory, description: e.target.value })}
                             />
                             <div className="flex justify-end space-x-2">
                                 <button type="submit" className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
-                                    Add
+                                    {formAction === 'add' ? 'Add' : 'Save'}
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setShowAddForm(false)}
+                                    onClick={() => setShowForm(false)}
                                     className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
                                 >
                                     Cancel
@@ -165,44 +164,16 @@ const ClientCategory = () => {
             <div className="space-y-4">
                 {filteredCategories.map(category => (
                     <div key={category.categoryId} className="border p-4 rounded-lg hover:shadow-custom-1">
-                        {editingCategory && editingCategory.categoryId === category.categoryId ? (
-                            <form onSubmit={handleUpdateCategory} className="space-y-2">
-                                <input
-                                    type="text"
-                                    value={editingCategory.categoryName}
-                                    onChange={(e) => setEditingCategory({ ...editingCategory, categoryName: e.target.value })}
-                                    className="w-full px-4 py-2 border rounded-lg"
-                                    required
-                                />
-                                <input
-                                    type="text"
-                                    value={editingCategory.description}
-                                    onChange={(e) => setEditingCategory({ ...editingCategory, description: e.target.value })}
-                                    className="w-full px-4 py-2 border rounded-lg"
-                                />
-                                <div className="flex justify-end space-x-2">
-                                    <button type="submit" className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
-                                        Save
-                                    </button>
-                                    <button type="button" onClick={() => setEditingCategory(null)} className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400">
-                                        Cancel
-                                    </button>
-                                </div>
-                            </form>
-                        ) : (
-                            <>
-                                <h3 className="text-lg font-semibold">{category.categoryName}</h3>
-                                <p className="text-gray-600">{category.description}</p>
-                                <div className="flex justify-end space-x-2 mt-2">
-                                    <button onClick={() => handleEditCategory(category)} className="p-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">
-                                        <Edit className="h-4 w-4" />
-                                    </button>
-                                    <button onClick={() => handleDeleteCategory(category.categoryId)} className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
-                                        <Trash2 className="h-4 w-4" />
-                                    </button>
-                                </div>
-                            </>
-                        )}
+                        <h3 className="text-lg font-semibold">{category.categoryName}</h3>
+                        <p className="text-gray-600">{category.description}</p>
+                        <div className="flex justify-end space-x-2 mt-2">
+                            <button onClick={() => handleEditCategory(category)} className="p-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">
+                                <Edit className="h-4 w-4" />
+                            </button>
+                            <button onClick={() => handleDeleteCategory(category.categoryId)} className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </div>
                     </div>
                 ))}
             </div>
