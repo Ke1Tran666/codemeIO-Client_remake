@@ -8,7 +8,7 @@ function ClientAdmin() {
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
     return (
-        <div className="flex h-screen bg-gray-100 w-full">
+        <div className="flex h-screen bg-gray-50 w-full">
             <Sidebar
                 activeMenu={activeMenu}
                 setActiveMenu={setActiveMenu}

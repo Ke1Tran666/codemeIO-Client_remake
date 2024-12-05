@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNotification } from '../../../../components/Notification/NotificationContext';
 import { useNavigate } from 'react-router-dom';
-import { BASE_URL_API } from '../../../../api/config'
+import { BASE_URL_API } from '../../../../api/config';
 
 const getCurrentDate = () => {
     const today = new Date();
@@ -43,15 +43,25 @@ const ClientSignUp = () => {
 
     const checkEmailExists = async (email) => {
         try {
-            const response = await axios.get(`${BASE_URL_API}/check-email?email=${email}`);
+            const response = await axios.get(`${BASE_URL_API}/users/check-email?email=${email}`);
             return response.data.exists;
         } catch (error) {
             console.error('Lỗi khi kiểm tra email:', error);
+
             return false; // Trả về false nếu có lỗi
         }
     };
 
-    // Trong hàm handleSubmit
+    const checkUsernameExists = async (username) => {
+        try {
+            const response = await axios.get(`${BASE_URL_API}/users/check-username?username=${username}`);
+            return response.data.exists;
+        } catch (error) {
+            console.error('Lỗi khi kiểm tra username:', error);
+            return false; // Trả về false nếu có lỗi
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -67,6 +77,14 @@ const ClientSignUp = () => {
         const emailExists = await checkEmailExists(formData.email);
         if (emailExists) {
             showNotification('error', 'Đăng ký thất bại', 'Email đã tồn tại.');
+            setIsSubmitting(false);
+            return;
+        }
+
+        // Kiểm tra xem username đã tồn tại chưa
+        const usernameExists = await checkUsernameExists(formData.username);
+        if (usernameExists) {
+            showNotification('error', 'Đăng ký thất bại', 'Username đã tồn tại.');
             setIsSubmitting(false);
             return;
         }

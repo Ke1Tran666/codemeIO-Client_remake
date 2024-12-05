@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, Plus, Edit, Trash2 } from 'lucide-react';
+import { Search, Plus, ChevronRight, ChevronLeft, MoreVertical } from 'lucide-react'; // Giữ nguyên các import khác
 import axios from 'axios';
 import { BASE_URL_API } from '../../../../api/config';
 import { useNotification } from '../../../../components/Notification/NotificationContext';
@@ -13,12 +13,15 @@ const ClientUsers = () => {
     const [formAction, setFormAction] = useState('add');
     const { showNotification } = useNotification();
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const usersPerPage = 8;
+
     useEffect(() => {
         const fetchUsers = async () => {
             try {
                 const response = await axios.get(`${BASE_URL_API}/users/`);
                 setUsers(response.data);
-                setFilteredUsers(response.data); // Cập nhật danh sách người dùng ban đầu
+                setFilteredUsers(response.data);
             } catch (error) {
                 console.error('Error fetching users:', error);
                 showNotification('error', 'Error loading data', 'Unable to fetch user information.');
@@ -31,17 +34,17 @@ const ClientUsers = () => {
     const handleSearch = (term) => {
         setSearchTerm(term);
         if (!term) {
-            // Nếu không có từ khóa tìm kiếm, hiển thị tất cả người dùng
             setFilteredUsers(users);
+            setCurrentPage(1);
             return;
         }
 
-        // Lọc người dùng theo tên đầy đủ
         const filtered = users.filter(user =>
             user.fullname.toLowerCase().includes(term.toLowerCase()) ||
             user.email.toLowerCase().includes(term.toLowerCase())
         );
         setFilteredUsers(filtered);
+        setCurrentPage(1);
     };
 
     const handleSubmit = async (e) => {
@@ -67,12 +70,6 @@ const ClientUsers = () => {
         }
     };
 
-    const handleEditUser = (user) => {
-        setCurrentUser({ ...user });
-        setFormAction('edit');
-        setShowForm(true);
-    };
-
     const handleDeleteUser = async (userId) => {
         try {
             await axios.delete(`${BASE_URL_API}/users/${userId}`);
@@ -85,32 +82,55 @@ const ClientUsers = () => {
         }
     };
 
+    const handleMoreOptions = (user) => {
+        // Hiện menu tùy chọn cho người dùng
+        const options = [
+            { label: 'View profile', action: () => console.log('View profile:', user) },
+            { label: 'Edit details', action: () => { setCurrentUser(user); setFormAction('edit'); setShowForm(true); } },
+            { label: 'Change permission', action: () => console.log('Change permission:', user) },
+            { label: 'Export details', action: () => console.log('Export details:', user) },
+            { label: 'Delete user', action: () => handleDeleteUser(user.userId) },
+        ];
+        return options;
+    };
+
+    // Tính toán người dùng hiển thị trên trang hiện tại
+    const indexOfLastUser = currentPage * usersPerPage;
+    const indexOfFirstUser = indexOfLastUser - usersPerPage;
+    const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+    const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+
     return (
         <div className="p-6 overflow-x-hidden">
             <h2 className="text-2xl font-bold mb-4">Users</h2>
 
             <div className="flex justify-between items-center mb-4">
-                <div className="relative w-64">
-                    <input
-                        type="text"
-                        placeholder="Search users..."
-                        className="w-full pl-10 pr-4 py-2 border rounded-lg"
-                        value={searchTerm}
-                        onChange={(e) => handleSearch(e.target.value)} // Gọi hàm tìm kiếm khi có thay đổi
-                    />
-                    <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                <div className="text-lg">
+                    Tổng số người dùng: {filteredUsers.length}
                 </div>
-                <button
-                    onClick={() => {
-                        setShowForm(true);
-                        setFormAction('add');
-                        setCurrentUser({ userId: '', fullname: '', email: '', phone: '', password: '', photo: '' });
-                    }}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center"
-                >
-                    <Plus className="h-5 w-5 mr-2" />
-                    Add User
-                </button>
+                <div className="flex items-center">
+                    <div className="relative w-64 mr-4">
+                        <input
+                            type="text"
+                            placeholder="Search users..."
+                            className="w-full pl-10 pr-4 py-2 border rounded-lg"
+                            value={searchTerm}
+                            onChange={(e) => handleSearch(e.target.value)}
+                        />
+                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    </div>
+                    <button
+                        onClick={() => {
+                            setShowForm(true);
+                            setFormAction('add');
+                            setCurrentUser({ userId: '', fullname: '', email: '', phone: '', password: '', photo: '' });
+                        }}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center"
+                    >
+                        <Plus className="h-5 w-5 mr-2" />
+                        Add User
+                    </button>
+                </div>
             </div>
 
             {showForm && (
@@ -167,22 +187,88 @@ const ClientUsers = () => {
                 </div>
             )}
 
-            <div className="space-y-4">
-                {filteredUsers.map(user => (
-                    <div key={user.userId} className="border p-4 rounded-lg hover:shadow-custom-1">
-                        <h3 className="text-lg font-semibold">{user.fullname}</h3>
-                        <p className="text-gray-600">{user.email}</p>
-                        <p className="text-gray-600">{user.phone}</p>
-                        <div className="flex justify-end space-x-2 mt-2">
-                            <button onClick={() => handleEditUser(user)} className="p-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">
-                                <Edit className="h-4 w-4" />
-                            </button>
-                            <button onClick={() => handleDeleteUser(user.userId)} className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
-                                <Trash2 className="h-4 w-4" />
-                            </button>
-                        </div>
-                    </div>
-                ))}
+            <table className="min-w-full border border-gray-300">
+                <thead>
+                    <tr className="bg-gray-100">
+                        <th className="py-2 px-4 border-b">User</th>
+                        <th className="py-2 px-4 border-b">Access</th>
+                        <th className="py-2 px-4 border-b">Date Added</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {currentUsers.map(user => (
+                        <tr key={user.userId} className="hover:bg-gray-50">
+                            <td className="py-2 px-4 border-b">{user.fullname}</td>
+                            <td className="py-2 px-4 border-b">{user.access}</td>
+                            <td className="py-2 px-4 border-b">{new Date(user.dateAdded).toLocaleDateString()}</td>
+                            <td className="py-2 px-4 border-b text-right">
+                                <button
+                                    onClick={() => {
+                                        const options = handleMoreOptions(user);
+                                        // Hiện menu tùy chọn (có thể dùng thư viện để tạo menu)
+                                        console.log(options);
+                                    }}
+                                    className="p-2 rounded-lg hover:bg-gray-300"
+                                >
+                                    {/* Sử dụng biểu tượng ba chấm dọc */}
+                                    <MoreVertical className='text-gray-500' />
+                                </button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+
+            <div className="flex justify-center mt-4 space-x-2">
+                <button
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`p-2 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                    <ChevronLeft />
+                </button>
+
+                {totalPages > 6 ? (
+                    <>
+                        {currentPage > 3 && (
+                            <>
+                                <button onClick={() => setCurrentPage(1)} className="px-4 py-2 border rounded-lg bg-white text-blue-500 hover:bg-blue-100">1</button>
+                                {currentPage > 4 && <span className="px-2">...</span>}
+                            </>
+                        )}
+                        {currentPage - 1 > 0 && (
+                            <button onClick={() => setCurrentPage(currentPage - 1)} className="px-4 py-2 border rounded-lg bg-white text-blue-500 hover:bg-blue-100">{currentPage - 1}</button>
+                        )}
+                        <button className="px-4 py-2 border rounded-lg bg-blue-500 text-white">{currentPage}</button>
+                        {currentPage + 1 <= totalPages && (
+                            <button onClick={() => setCurrentPage(currentPage + 1)} className="px-4 py-2 border rounded-lg bg-white text-blue-500 hover:bg-blue-100">{currentPage + 1}</button>
+                        )}
+                        {currentPage < totalPages - 2 && (
+                            <>
+                                {currentPage < totalPages - 3 && <span className="px-2">...</span>}
+                                <button onClick={() => setCurrentPage(totalPages)} className="px-4 py-2 border rounded-lg bg-white text-blue-500 hover:bg-blue-100">{totalPages}</button>
+                            </>
+                        )}
+                    </>
+                ) : (
+                    Array.from({ length: totalPages }, (_, index) => (
+                        <button
+                            key={index + 1}
+                            onClick={() => setCurrentPage(index + 1)}
+                            className={`px-4 py-2 border rounded-lg ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-blue-500 hover:bg-blue-100'}`}
+                        >
+                            {index + 1}
+                        </button>
+                    ))
+                )}
+
+                <button
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={`p-2 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                    <ChevronRight />
+                </button>
             </div>
         </div>
     );
