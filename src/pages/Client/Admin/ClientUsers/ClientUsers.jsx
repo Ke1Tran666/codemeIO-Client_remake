@@ -1,8 +1,13 @@
-import { useEffect, useState } from 'react';
-import { Search, Plus, ChevronRight, ChevronLeft, MoreVertical } from 'lucide-react'; // Giữ nguyên các import khác
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { Plus, MoreVertical, Eye, Edit, Lock, Download, Trash } from 'lucide-react';
 import axios from 'axios';
-import { BASE_URL_API } from '../../../../api/config';
+import { BASE_URL_API, BASE_URL } from '../../../../api/config';
 import { useNotification } from '../../../../components/Notification/NotificationContext';
+import Pagination from '../../../../components/Pagination/Pagination';
+import Count from '../../../../components/Count/Count';
+import InputSearch from '../../../../components/Search/Search';
+import TableHeader from '../../../../components/Table/TableHeader';
+import ProfileView from '../../../../components/Form/ViewProfileForm';
 
 const ClientUsers = () => {
     const [users, setUsers] = useState([]);
@@ -12,9 +17,16 @@ const ClientUsers = () => {
     const [showForm, setShowForm] = useState(false);
     const [formAction, setFormAction] = useState('add');
     const { showNotification } = useNotification();
+    const [activeDropdown, setActiveDropdown] = useState(null);
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+    const [showProfile, setShowProfile] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
 
     const [currentPage, setCurrentPage] = useState(1);
     const usersPerPage = 8;
+    const headers = ['User', 'Access', 'Status', 'Date Added'];
+
+    const dropdownRef = useRef(null);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -83,42 +95,80 @@ const ClientUsers = () => {
     };
 
     const handleMoreOptions = (user) => {
-        // Hiện menu tùy chọn cho người dùng
         const options = [
-            { label: 'View profile', action: () => console.log('View profile:', user) },
-            { label: 'Edit details', action: () => { setCurrentUser(user); setFormAction('edit'); setShowForm(true); } },
-            { label: 'Change permission', action: () => console.log('Change permission:', user) },
-            { label: 'Export details', action: () => console.log('Export details:', user) },
-            { label: 'Delete user', action: () => handleDeleteUser(user.userId) },
+            {
+                label: 'View profile',
+                action: () => {
+                    setSelectedUser(user);
+                    setShowProfile(true);
+                },
+                icon: <Eye className="h-4 w-4 mr-2" />
+            },
+            { label: 'Edit details', action: () => { setCurrentUser(user); setFormAction('edit'); setShowForm(true); }, icon: <Edit className="h-4 w-4 mr-2" /> },
+            { label: 'Change permission', action: () => console.log('Change permission:', user), icon: <Lock className="h-4 w-4 mr-2" /> },
+            { label: 'Export details', action: () => console.log('Export details:', user), icon: <Download className="h-4 w-4 mr-2" /> },
+            { label: 'Delete user', action: () => handleDeleteUser(user.userId), icon: <Trash className="h-4 w-4 mr-2" /> },
         ];
         return options;
     };
 
-    // Tính toán người dùng hiển thị trên trang hiện tại
     const indexOfLastUser = currentPage * usersPerPage;
     const indexOfFirstUser = indexOfLastUser - usersPerPage;
     const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
     const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+
+    const handleClickOutside = useCallback((event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            setActiveDropdown(null);
+        }
+    }, []);
+
+    useEffect(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [handleClickOutside]);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setActiveDropdown(null);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
+    const handleMoreVerticalClick = (event, userId) => {
+        event.stopPropagation();
+        const rect = event.currentTarget.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const dropdownHeight = 200;
+
+        setDropdownPosition({
+            top: spaceBelow > dropdownHeight || spaceBelow > spaceAbove
+                ? rect.bottom + window.scrollY
+                : rect.top - dropdownHeight + window.scrollY,
+            left: rect.right - 192 + window.scrollX
+        });
+        setActiveDropdown(activeDropdown === userId ? null : userId);
+    };
 
     return (
         <div className="p-6 overflow-x-hidden">
             <h2 className="text-2xl font-bold mb-4">Users</h2>
 
             <div className="flex justify-between items-center mb-4">
-                <div className="text-lg">
-                    Tổng số người dùng: {filteredUsers.length}
-                </div>
+                <Count count={filteredUsers.length} title="Tổng số người dùng" />
                 <div className="flex items-center">
-                    <div className="relative w-64 mr-4">
-                        <input
-                            type="text"
-                            placeholder="Search users..."
-                            className="w-full pl-10 pr-4 py-2 border rounded-lg"
-                            value={searchTerm}
-                            onChange={(e) => handleSearch(e.target.value)}
-                        />
-                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                    </div>
+                    <InputSearch
+                        searchTerm={searchTerm}
+                        onSearch={handleSearch}
+                        placeholder="Tìm kiếm người dùng..."
+                    />
                     <button
                         onClick={() => {
                             setShowForm(true);
@@ -187,91 +237,107 @@ const ClientUsers = () => {
                 </div>
             )}
 
-            <table className="min-w-full border border-gray-300">
-                <thead>
-                    <tr className="bg-gray-100">
-                        <th className="py-2 px-4 border-b">User</th>
-                        <th className="py-2 px-4 border-b">Access</th>
-                        <th className="py-2 px-4 border-b">Date Added</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {currentUsers.map(user => (
-                        <tr key={user.userId} className="hover:bg-gray-50">
-                            <td className="py-2 px-4 border-b">{user.fullname}</td>
-                            <td className="py-2 px-4 border-b">{user.access}</td>
-                            <td className="py-2 px-4 border-b">{new Date(user.dateAdded).toLocaleDateString()}</td>
-                            <td className="py-2 px-4 border-b text-right">
-                                <button
-                                    onClick={() => {
-                                        const options = handleMoreOptions(user);
-                                        // Hiện menu tùy chọn (có thể dùng thư viện để tạo menu)
-                                        console.log(options);
-                                    }}
-                                    className="p-2 rounded-lg hover:bg-gray-300"
-                                >
-                                    {/* Sử dụng biểu tượng ba chấm dọc */}
-                                    <MoreVertical className='text-gray-500' />
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-
-            <div className="flex justify-center mt-4 space-x-2">
-                <button
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className={`p-2 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                    <ChevronLeft />
-                </button>
-
-                {totalPages > 6 ? (
-                    <>
-                        {currentPage > 3 && (
-                            <>
-                                <button onClick={() => setCurrentPage(1)} className="px-4 py-2 border rounded-lg bg-white text-blue-500 hover:bg-blue-100">1</button>
-                                {currentPage > 4 && <span className="px-2">...</span>}
-                            </>
-                        )}
-                        {currentPage - 1 > 0 && (
-                            <button onClick={() => setCurrentPage(currentPage - 1)} className="px-4 py-2 border rounded-lg bg-white text-blue-500 hover:bg-blue-100">{currentPage - 1}</button>
-                        )}
-                        <button className="px-4 py-2 border rounded-lg bg-blue-500 text-white">{currentPage}</button>
-                        {currentPage + 1 <= totalPages && (
-                            <button onClick={() => setCurrentPage(currentPage + 1)} className="px-4 py-2 border rounded-lg bg-white text-blue-500 hover:bg-blue-100">{currentPage + 1}</button>
-                        )}
-                        {currentPage < totalPages - 2 && (
-                            <>
-                                {currentPage < totalPages - 3 && <span className="px-2">...</span>}
-                                <button onClick={() => setCurrentPage(totalPages)} className="px-4 py-2 border rounded-lg bg-white text-blue-500 hover:bg-blue-100">{totalPages}</button>
-                            </>
-                        )}
-                    </>
-                ) : (
-                    Array.from({ length: totalPages }, (_, index) => (
-                        <button
-                            key={index + 1}
-                            onClick={() => setCurrentPage(index + 1)}
-                            className={`px-4 py-2 border rounded-lg ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-blue-500 hover:bg-blue-100'}`}
-                        >
-                            {index + 1}
-                        </button>
-                    ))
-                )}
-
-                <button
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className={`p-2 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                    <ChevronRight />
-                </button>
+            <div className="overflow-x-auto relative">
+                <table className="w-full">
+                    <TableHeader headers={headers} />
+                    <tbody>
+                        {currentUsers.map(user => (
+                            <tr key={user.userId} className="hover:bg-gray-50">
+                                <td className="py-2 px-4 border-b w-1/4">
+                                    <div className="flex items-center">
+                                        <img src={`${BASE_URL}${user.photo}`} alt={user.fullname} className="h-8 w-8 rounded-full mr-2" />
+                                        <div className="overflow-hidden">
+                                            <div className="font-semibold truncate">{user.fullname}</div>
+                                            <div className="text-gray-500 text-sm truncate">{user.email}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="py-2 px-4 border-b w-1/4">
+                                    <div className="flex flex-wrap items-center gap-1">
+                                        {user.userType && user.userType.split(", ").map((type, index) => (
+                                            <span key={index} className={`px-2 py-1 rounded-full text-sm ${type === 'Admin' ? 'bg-red-100 text-red-800' :
+                                                    type === 'Instructor' ? 'bg-green-100 text-green-800' :
+                                                        type === 'Student' ? 'bg-blue-100 text-blue-800' :
+                                                            'bg-gray-100 text-gray-800'
+                                                }`}>
+                                                {type}
+                                            </span>
+                                        ))}
+                                        {user.userType === null && (
+                                            <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm">N/A</span>
+                                        )}
+                                    </div>
+                                </td>
+                                <td className="py-2 px-4 border-b w-1/4">
+                                    <span className={`px-2 py-1 rounded-full ${user.status === 'Active' ? 'bg-green-100 text-green-800' :
+                                        user.status === 'Inactive' ? 'bg-red-100 text-red-800' :
+                                            user.status === null ? 'bg-gray-100 text-gray-800' :
+                                                'bg-gray-100 text-gray-800'
+                                        }`}>
+                                        {user.status || 'N/A'}
+                                    </span>
+                                </td>
+                                <td className="py-2 px-4 border-b w-1/4">
+                                    <div className="flex justify-between items-center">
+                                        <span>{new Date(user.startDate).toLocaleDateString()}</span>
+                                        <button
+                                            onClick={(e) => handleMoreVerticalClick(e, user.userId)}
+                                            className="p-1 hover:bg-gray-200 rounded-full"
+                                        >
+                                            <MoreVertical className="h-5 w-5" />
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
+
+            {activeDropdown && (
+                <div
+                    ref={dropdownRef}
+                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
+                    style={{
+                        top: `${dropdownPosition.top}px`,
+                        left: `${dropdownPosition.left}px`,
+                    }}
+                >
+                    <div className="py-1 max-h-48 overflow-y-auto">
+                        {handleMoreOptions(users.find(user => user.userId === activeDropdown)).map((option, index) => (
+                            <button
+                                key={index}
+                                onClick={() => {
+                                    option.action();
+                                    setActiveDropdown(null);
+                                }}
+                                className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                                {option.icon}
+                                {option.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+            />
+            {showProfile && selectedUser && (
+                <ProfileView
+                    user={selectedUser}
+                    onClose={() => {
+                        setShowProfile(false);
+                        setSelectedUser(null);
+                    }}
+                />
+            )}
         </div>
     );
 }
 
 export default ClientUsers;
+

@@ -21,3 +21,4 @@ npx tailwindcss -i src/assets/css/input.css -o src/assets/css/output.css --watch
 - lucide-react
 - react-router-dom
 - axios (call api)
+- prop-types (Destructuring)
