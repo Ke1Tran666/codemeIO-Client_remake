@@ -94,6 +94,16 @@ const ClientUsers = () => {
         setCurrentPage(1);
     };
 
+    const handleRoleUpdate = async (userId, roles) => {
+        try {
+            await axios.put(`${BASE_URL_API}/userRoles/users/${userId}`, { newRoles: roles });
+            showNotification('success', 'Success', 'User roles have been updated.');
+        } catch (error) {
+            console.error('Error updating user roles:', error);
+            showNotification('error', 'Error', 'Unable to update user roles.');
+        }
+    };
+
     const handleSubmit = async (userData) => {
         try {
             const dataToSend = {
@@ -113,6 +123,8 @@ const ClientUsers = () => {
                 setUsers(users.map(user => (user.userId === userId ? response.data : user)));
                 setFilteredUsers(filteredUsers.map(user => (user.userId === userId ? response.data : user)));
                 showNotification('success', 'Success', 'User has been updated.');
+
+                await handleRoleUpdate(userId, userData.roles);
             }
             setCurrentUser({
                 userId: '',

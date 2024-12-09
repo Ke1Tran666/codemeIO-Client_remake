@@ -54,7 +54,7 @@ const EditProfileForm = ({ user, onClose, onSave }) => {
             ...editedUser,
             roles: userRoles // Lưu ý rằng roles là một mảng
         };
-        onSave(updatedUser); // Chỉ gọi với updatedUser
+        onSave(updatedUser); // Gọi hàm lưu với updatedUser
     };
 
     const formatDate = (dateString) => {
