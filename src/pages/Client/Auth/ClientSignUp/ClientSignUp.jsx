@@ -212,8 +212,8 @@ const ClientSignUp = () => {
                         required
                     >
                         <option value="" disabled>Chọn giới tính</option>
-                        <option value="male">Nam</option>
-                        <option value="female">Nữ</option>
+                        <option value="Male">Nam</option>
+                        <option value="Female">Nữ</option>
                     </select>
                 </div>
 

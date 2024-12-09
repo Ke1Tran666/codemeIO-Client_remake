@@ -4,7 +4,7 @@ import { User, X, Briefcase, Clock } from 'lucide-react';
 import { BASE_URL } from '../../api/config'
 
 // eslint-disable-next-line react/prop-types
-const ProfileView = ({ user, onClose }) => {
+const ViewProfile = ({ user, onClose }) => {
     const {
         userId,
         username,
@@ -228,5 +228,5 @@ const ProfileView = ({ user, onClose }) => {
     );
 };
 
-export default ProfileView;
+export default ViewProfile;
 
