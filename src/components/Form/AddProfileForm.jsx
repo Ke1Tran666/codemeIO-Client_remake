@@ -46,7 +46,6 @@ const AddProfileForm = ({ onClose, onSave }) => {
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
-            // Kiểm tra loại tệp
             if (!file.type.startsWith('image/')) {
                 showNotification('error', 'Vui lòng chọn tệp hình ảnh hợp lệ', '');
                 return;
@@ -58,41 +57,48 @@ const AddProfileForm = ({ onClose, onSave }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const formData = new FormData();
+        const { username, password, email, fullname, gender } = newUser;
 
-        // Gán dữ liệu người dùng vào FormData
+        // Kiểm tra dữ liệu bắt buộc
+        if (!username || !password || !email || !fullname || !gender) {
+            showNotification('error', 'Vui lòng điền đầy đủ thông tin cần thiết', '');
+            return;
+        }
+
+        // Kiểm tra nếu ảnh đã được tải lên
+        if (!newUser.photo) {
+            showNotification('error', 'Vui lòng tải lên ảnh đại diện', '');
+            return;
+        }
+
+        const formData = new FormData();
         Object.keys(newUser).forEach(key => {
             if (key === 'photo') {
-                formData.append('file', newUser.photo); // Gửi tệp hình ảnh
+                formData.append('file', newUser.photo);
             } else {
-                formData.append(key, newUser[key]); // Gửi các trường khác
+                formData.append(key, newUser[key]);
             }
         });
         userRoles.forEach(role => {
-            formData.append('roles', role); // Gửi các vai trò người dùng
+            formData.append('roles', role);
         });
 
+        // Kiểm tra nội dung formData
         for (let [key, value] of formData.entries()) {
-            console.log(key, value); // In ra từng trường và giá trị
+            console.log(key, value); // Hiển thị dữ liệu trong formData
         }
 
         try {
-            // Gọi API để tạo người dùng mới
-            const response = await axios.post(`${BASE_URL_API}/users`, formData);
-
-            const newUserId = response.data.user.userId; // Lấy ID người dùng mới tạo
-
-            // Gọi API để cập nhật hình ảnh
-            const imageFormData = new FormData();
-            imageFormData.append('file', newUser.photo);
-
-            await axios.put(`${BASE_URL_API}/users/${newUserId}/image`, imageFormData);
-
-            onSave(response.data); // Cập nhật danh sách người dùng
+            const response = await axios.post(`${BASE_URL_API}/users`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            onSave(response.data);
             showNotification('success', 'Thêm người dùng thành công', '');
-            onClose(); // Đóng form
+            onClose();
         } catch (error) {
-            showNotification('error', 'Thêm người dùng thất bại', 'Vui lòng thử lại!');
+            showNotification('error', 'Thêm người dùng thất bại', error.response?.data?.message || 'Vui lòng thử lại!');
             console.error('Error adding user:', error);
         }
     };
@@ -139,7 +145,7 @@ const AddProfileForm = ({ onClose, onSave }) => {
                                     alt="User profile"
                                     className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
                                 />
-                                <label htmlFor="imageUpload" className="absolute bottom-0 right-0 bg-white p-2 rounded-full shadow-md cursor-pointer">
+                                <label htmlFor="imageUpload" className="absolute bottom-4 right-3 bg-white p-2 rounded-full shadow-md cursor-pointer">
                                     <Upload className="h-5 w-5 text-gray-600" />
                                     <input
                                         id="imageUpload"

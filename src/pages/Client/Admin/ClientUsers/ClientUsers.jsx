@@ -15,7 +15,7 @@ const ClientUsers = () => {
     const [users, setUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [currentUser, setCurrentUser] = useState({
+    const [, setCurrentUser] = useState({
         userId: '',
         fullname: '',
         email: '',
@@ -52,14 +52,8 @@ const ClientUsers = () => {
                     usersData.map(async (user) => {
                         try {
                             const rolesResponse = await axios.get(`${BASE_URL_API}/userRoles/users/${user.userId}`);
-                            const roles = Array.isArray(rolesResponse.data) ?
-                                rolesResponse.data.map(role => role?.roleName).filter(role => role !== null && role !== undefined)
-                                : [];
-
-                            return {
-                                ...user,
-                                roles: roles
-                            };
+                            const roles = Array.isArray(rolesResponse.data) ? rolesResponse.data.map(role => role?.roleName).filter(role => role) : [];
+                            return { ...user, roles };
                             // eslint-disable-next-line no-unused-vars
                         } catch (error) {
                             console.error("Error fetching roles for user:", user.userId);
@@ -97,9 +91,19 @@ const ClientUsers = () => {
 
     const handleAddUser = async (userData) => {
         try {
-            const response = await axios.post(`${BASE_URL_API}/users`, userData);
-            setUsers([...users, response.data]);
-            setFilteredUsers([...filteredUsers, response.data]);
+            const formData = new FormData();
+            Object.keys(userData).forEach(key => {
+                formData.append(key, userData[key]);
+            });
+
+            const response = await axios.post(`${BASE_URL_API}/users`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            setUsers((prevUsers) => [...prevUsers, response.data]);
+            setFilteredUsers((prevFiltered) => [...prevFiltered, response.data]);
             showNotification('success', 'Success', 'User has been added.');
             setShowForm(false); // Đóng form sau khi thêm người dùng
         } catch (error) {
@@ -128,14 +132,14 @@ const ClientUsers = () => {
             let response;
             if (formAction === 'add') {
                 response = await axios.post(`${BASE_URL_API}/users`, dataToSend);
-                setUsers([...users, response.data]);
-                setFilteredUsers([...filteredUsers, response.data]);
+                setUsers((prevUsers) => [...prevUsers, response.data]);
+                setFilteredUsers((prevFiltered) => [...prevFiltered, response.data]);
                 showNotification('success', 'Success', 'User has been added.');
             } else if (formAction === 'edit') {
                 const userId = userData.userId;
                 response = await axios.put(`${BASE_URL_API}/users/${userId}`, dataToSend);
-                setUsers(users.map(user => (user.userId === userId ? response.data : user)));
-                setFilteredUsers(filteredUsers.map(user => (user.userId === userId ? response.data : user)));
+                setUsers((prevUsers) => prevUsers.map(user => (user.userId === userId ? response.data : user)));
+                setFilteredUsers((prevFiltered) => prevFiltered.map(user => (user.userId === userId ? response.data : user)));
                 showNotification('success', 'Success', 'User has been updated.');
 
                 await handleRoleUpdate(userId, userData.roles);
@@ -164,8 +168,8 @@ const ClientUsers = () => {
     const handleDeleteUser = async (userId) => {
         try {
             await axios.delete(`${BASE_URL_API}/users/${userId}`);
-            setUsers(users.filter(user => user.userId !== userId));
-            setFilteredUsers(filteredUsers.filter(user => user.userId !== userId));
+            setUsers((prevUsers) => prevUsers.filter(user => user.userId !== userId));
+            setFilteredUsers((prevFiltered) => prevFiltered.filter(user => user.userId !== userId));
             showNotification('success', 'Success', 'User has been deleted.');
         } catch (error) {
             console.error('Error deleting user:', error);
@@ -217,17 +221,6 @@ const ClientUsers = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [handleClickOutside]);
-
-    useEffect(() => {
-        const handleScroll = () => {
-            setActiveDropdown(null);
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
-    }, []);
 
     const handleMoreVerticalClick = (event, userId) => {
         event.stopPropagation();
@@ -318,10 +311,7 @@ const ClientUsers = () => {
                                     </div>
                                 </td>
                                 <td className="py-2 px-4 border-b w-1/4">
-                                    <span className={`px-2 py-1 rounded-full ${user.status === 'Active' ? 'bg-green-100 text-green-800' :
-                                        user.status === 'Inactive' ? 'bg-red-100 text-red-800' :
-                                            'bg-gray-100 text-gray-800'
-                                        }`}>
+                                    <span className={`px-2 py-1 rounded-full ${user.status === 'Active' ? 'bg-green-100 text-green-800' : user.status === 'Inactive' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
                                         {user.status || 'N/A'}
                                     </span>
                                 </td>
@@ -385,9 +375,7 @@ const ClientUsers = () => {
             )}
             {showEditForm && selectedUser && (
                 <EditProfileForm
-                    user={{
-                        ...selectedUser,
-                    }}
+                    user={selectedUser}
                     onClose={() => {
                         setShowEditForm(false);
                         setSelectedUser(null);
