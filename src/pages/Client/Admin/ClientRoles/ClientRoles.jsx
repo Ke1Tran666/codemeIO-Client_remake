@@ -1,27 +1,43 @@
-import { useEffect, useState } from 'react';
-import { Search, Plus, Edit, Trash2 } from 'lucide-react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { Plus, MoreVertical, Edit, Trash } from 'lucide-react';
 import axios from 'axios';
 import { BASE_URL_API } from '../../../../api/config';
 import { useNotification } from '../../../../components/Notification/NotificationContext';
+import Pagination from '../../../../components/Pagination/Pagination';
+import Count from '../../../../components/Count/Count';
+import InputSearch from '../../../../components/Search/Search';
+import TableHeader from '../../../../components/Table/TableHeader';
+import RoleForm from '../../../../components/Form/RoleForm';
 
 const ClientRoles = () => {
     const [roles, setRoles] = useState([]);
     const [filteredRoles, setFilteredRoles] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [currentRole, setCurrentRole] = useState({ roleName: '', roleId: '' });
+    const [currentRole, setCurrentRole] = useState({
+        roleId: '',
+        roleName: ''
+    });
     const [showForm, setShowForm] = useState(false);
-    const [formAction, setFormAction] = useState('add'); // 'add' hoặc 'edit'
+    const [formAction, setFormAction] = useState('add');
     const { showNotification } = useNotification();
+    const [activeDropdown, setActiveDropdown] = useState(null);
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const rolesPerPage = 8;
+    const headers = ['Role Name', ''];
+
+    const dropdownRef = useRef(null);
 
     useEffect(() => {
         const fetchRoles = async () => {
             try {
                 const response = await axios.get(`${BASE_URL_API}/roles`);
                 setRoles(response.data);
-                setFilteredRoles(response.data); // Cập nhật danh sách vai trò ban đầu
+                setFilteredRoles(response.data);
             } catch (error) {
                 console.error('Error fetching roles:', error);
-                showNotification('error', 'Lỗi tải dữ liệu', 'Không tìm thấy thông tin vai trò.');
+                showNotification('error', 'Error loading data', 'Unable to fetch role information.');
             }
         };
 
@@ -31,57 +47,110 @@ const ClientRoles = () => {
     const handleSearch = (term) => {
         setSearchTerm(term);
         if (!term) {
-            // Nếu không có từ khóa tìm kiếm, hiển thị tất cả vai trò
             setFilteredRoles(roles);
+            setCurrentPage(1);
             return;
         }
 
-        // Lọc vai trò theo tên vai trò
         const filtered = roles.filter(role =>
             role.roleName.toLowerCase().includes(term.toLowerCase())
         );
         setFilteredRoles(filtered);
+        setCurrentPage(1);
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (roleData) => {
         try {
             let response;
             if (formAction === 'add') {
-                response = await axios.post(`${BASE_URL_API}/roles`, currentRole);
+                response = await axios.post(`${BASE_URL_API}/roles`, roleData);
                 setRoles([...roles, response.data]);
-                setFilteredRoles([...filteredRoles, response.data]); // Cập nhật cả danh sách đã lọc
-                showNotification('success', 'Thành công', 'Vai trò đã được thêm.');
+                setFilteredRoles([...filteredRoles, response.data]);
+                showNotification('success', 'Success', 'Role has been added.');
             } else if (formAction === 'edit') {
-                response = await axios.put(`${BASE_URL_API}/roles/${currentRole.roleId}`, currentRole);
-                setRoles(roles.map(role => role.roleId === currentRole.roleId ? response.data : role));
-                setFilteredRoles(filteredRoles.map(role => role.roleId === currentRole.roleId ? response.data : role)); // Cập nhật danh sách đã lọc
-                showNotification('success', 'Thành công', 'Vai trò đã được cập nhật.');
+                response = await axios.put(`${BASE_URL_API}/roles/${roleData.roleId}`, roleData);
+                setRoles(roles.map(role => (role.roleId === roleData.roleId ? response.data : role)));
+                setFilteredRoles(filteredRoles.map(role => (role.roleId === roleData.roleId ? response.data : role)));
+                showNotification('success', 'Success', 'Role has been updated.');
             }
-            setCurrentRole({ roleName: '', roleId: '' });
+            setCurrentRole({ roleId: '', roleName: '' });
             setShowForm(false);
         } catch (error) {
             console.error('Error:', error);
-            showNotification('error', 'Lỗi', 'Không thể thực hiện thao tác.');
+            showNotification('error', 'Error', 'Unable to perform the operation.');
         }
-    };
-
-    const handleEditRole = (role) => {
-        setCurrentRole({ roleName: role.roleName, roleId: role.roleId });
-        setFormAction('edit');
-        setShowForm(true);
     };
 
     const handleDeleteRole = async (roleId) => {
         try {
             await axios.delete(`${BASE_URL_API}/roles/${roleId}`);
             setRoles(roles.filter(role => role.roleId !== roleId));
-            setFilteredRoles(filteredRoles.filter(role => role.roleId !== roleId)); // Cập nhật danh sách đã lọc
-            showNotification('success', 'Thành công', 'Vai trò đã được xóa.');
+            setFilteredRoles(filteredRoles.filter(role => role.roleId !== roleId));
+            showNotification('success', 'Success', 'Role has been deleted.');
         } catch (error) {
             console.error('Error deleting role:', error);
-            showNotification('error', 'Lỗi xóa vai trò', 'Không thể xóa vai trò.');
+            showNotification('error', 'Error deleting role', 'Unable to delete the role.');
         }
+    };
+
+    const handleMoreOptions = (role) => {
+        return [
+            {
+                label: 'Edit role',
+                action: () => {
+                    setCurrentRole(role);
+                    setShowForm(true);
+                    setFormAction('edit');
+                },
+                icon: <Edit className="h-4 w-4 mr-2" />
+            },
+            { label: 'Delete role', action: () => handleDeleteRole(role.roleId), icon: <Trash className="h-4 w-4 mr-2" /> },
+        ];
+    };
+
+    const indexOfLastRole = currentPage * rolesPerPage;
+    const indexOfFirstRole = indexOfLastRole - rolesPerPage;
+    const currentRoles = filteredRoles.slice(indexOfFirstRole, indexOfLastRole);
+    const totalPages = Math.ceil(filteredRoles.length / rolesPerPage);
+
+    const handleClickOutside = useCallback((event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            setActiveDropdown(null);
+        }
+    }, []);
+
+    useEffect(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [handleClickOutside]);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setActiveDropdown(null);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
+    const handleMoreVerticalClick = (event, roleId) => {
+        event.stopPropagation();
+        const rect = event.currentTarget.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const dropdownHeight = 100;
+
+        setDropdownPosition({
+            top: spaceBelow > dropdownHeight || spaceBelow > spaceAbove
+                ? rect.bottom + window.scrollY
+                : rect.top - dropdownHeight + window.scrollY,
+            left: rect.right - 192 + window.scrollX
+        });
+        setActiveDropdown(activeDropdown === roleId ? null : roleId);
     };
 
     return (
@@ -89,74 +158,93 @@ const ClientRoles = () => {
             <h2 className="text-2xl font-bold mb-4">Roles</h2>
 
             <div className="flex justify-between items-center mb-4">
-                <div className="relative w-64">
-                    <input
-                        type="text"
+                <Count count={filteredRoles.length} title="Total Roles" />
+                <div className="flex items-center">
+                    <InputSearch
+                        searchTerm={searchTerm}
+                        onSearch={handleSearch}
                         placeholder="Search roles..."
-                        className="w-full pl-10 pr-4 py-2 border rounded-lg"
-                        value={searchTerm}
-                        onChange={(e) => handleSearch(e.target.value)} // Gọi hàm tìm kiếm khi có thay đổi
                     />
-                    <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    <button
+                        onClick={() => {
+                            setShowForm(true);
+                            setFormAction('add');
+                            setCurrentRole({ roleId: '', roleName: '' });
+                        }}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center"
+                    >
+                        <Plus className="h-5 w-5 mr-2" />
+                        Add Role
+                    </button>
                 </div>
-                <button
-                    onClick={() => {
-                        setShowForm(true);
-                        setFormAction('add');
-                        setCurrentRole({ roleName: '', roleId: '' });
-                    }}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center"
-                >
-                    <Plus className="h-5 w-5 mr-2" />
-                    Add Role
-                </button>
             </div>
 
             {showForm && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start pt-20 z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-                        <h3 className="text-xl font-bold mb-4">{formAction === 'add' ? 'Add New Role' : 'Edit Role'}</h3>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <input
-                                type="text"
-                                placeholder="Role Name"
-                                className="w-full px-4 py-2 border rounded-lg"
-                                value={currentRole.roleName}
-                                onChange={(e) => setCurrentRole({ ...currentRole, roleName: e.target.value })}
-                                required
-                            />
-                            <div className="flex justify-end space-x-2">
-                                <button type="submit" className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
-                                    {formAction === 'add' ? 'Add' : 'Save'}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowForm(false)}
-                                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
+                <RoleForm
+                    role={currentRole}
+                    onClose={() => setShowForm(false)}
+                    onSave={handleSubmit}
+                    formAction={formAction}
+                />
+            )}
+
+            <div className="overflow-x-auto relative">
+                <table className="w-full">
+                    <TableHeader headers={headers} />
+                    <tbody>
+                        {currentRoles.map(role => (
+                            <tr key={role.roleId} className="hover:bg-gray-50">
+                                <td className="py-2 px-4 border-b">
+                                    <div className="font-semibold">{role.roleName}</div>
+                                </td>
+                                <td className="py-2 px-4 border-b">
+                                    <div className="flex justify-end">
+                                        <button
+                                            onClick={(e) => handleMoreVerticalClick(e, role.roleId)}
+                                            className="p-1 hover:bg-gray-200 rounded-full"
+                                        >
+                                            <MoreVertical className="h-5 w-5" />
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {activeDropdown && (
+                <div
+                    ref={dropdownRef}
+                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
+                    style={{
+                        top: `${dropdownPosition.top}px`,
+                        left: `${dropdownPosition.left}px`,
+                    }}
+                >
+                    <div className="py-1">
+                        {handleMoreOptions(roles.find(role => role.roleId === activeDropdown)).map((option) => (
+                            <button
+                                key={`${activeDropdown}-${option.label}`}
+                                onClick={() => {
+                                    option.action();
+                                    setActiveDropdown(null);
+                                }}
+                                className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                                {option.icon}
+                                {option.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
             )}
 
-            <div className="space-y-4">
-                {filteredRoles.map(role => (
-                    <div key={role.roleId} className="border p-4 rounded-lg hover:shadow-custom-1">
-                        <h3 className="text-lg font-semibold">{role.roleName}</h3>
-                        <div className="flex justify-end space-x-2 mt-2">
-                            <button onClick={() => handleEditRole(role)} className="p-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">
-                                <Edit className="h-4 w-4" />
-                            </button>
-                            <button onClick={() => handleDeleteRole(role.roleId)} className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
-                                <Trash2 className="h-4 w-4" />
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+            />
         </div>
     );
 }

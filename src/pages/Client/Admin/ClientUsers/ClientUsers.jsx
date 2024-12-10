@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { Plus, MoreVertical, Eye, Edit, Lock, Download, Trash } from 'lucide-react';
+import { Plus, MoreVertical, Eye, Edit, Trash } from 'lucide-react';
 import axios from 'axios';
 import { BASE_URL_API, BASE_URL } from '../../../../api/config';
 import { useNotification } from '../../../../components/Notification/NotificationContext';
@@ -9,6 +9,7 @@ import InputSearch from '../../../../components/Search/Search';
 import TableHeader from '../../../../components/Table/TableHeader';
 import ProfileView from '../../../../components/Form/ViewProfileForm';
 import EditProfileForm from '../../../../components/Form/EditProfileForm';
+import AddProfileForm from '../../../../components/Form/AddProfileForm';
 
 const ClientUsers = () => {
     const [users, setUsers] = useState([]);
@@ -92,6 +93,19 @@ const ClientUsers = () => {
         );
         setFilteredUsers(filtered);
         setCurrentPage(1);
+    };
+
+    const handleAddUser = async (userData) => {
+        try {
+            const response = await axios.post(`${BASE_URL_API}/users`, userData);
+            setUsers([...users, response.data]);
+            setFilteredUsers([...filteredUsers, response.data]);
+            showNotification('success', 'Success', 'User has been added.');
+            setShowForm(false); // Đóng form sau khi thêm người dùng
+        } catch (error) {
+            console.error('Error adding user:', error);
+            showNotification('error', 'Error', 'Unable to add user.');
+        }
     };
 
     const handleRoleUpdate = async (userId, roles) => {
@@ -182,8 +196,6 @@ const ClientUsers = () => {
                 },
                 icon: <Edit className="h-4 w-4 mr-2" />
             },
-            { label: 'Change permission', action: () => console.log('Change permission:', user), icon: <Lock className="h-4 w-4 mr-2" /> },
-            { label: 'Export details', action: () => console.log('Export details:', user), icon: <Download className="h-4 w-4 mr-2" /> },
             { label: 'Delete user', action: () => handleDeleteUser(user.userId), icon: <Trash className="h-4 w-4 mr-2" /> },
         ];
     };
@@ -271,97 +283,10 @@ const ClientUsers = () => {
             </div>
 
             {showForm && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start pt-20 z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-                        <h3 className="text-xl font-bold mb-4">{formAction === 'add' ? 'Add New User' : 'Edit User'}</h3>
-                        <form onSubmit={(e) => {
-                            e.preventDefault();
-                            handleSubmit(currentUser);
-                        }} className="space-y-4">
-                            <input
-                                type="text"
-                                placeholder="Full Name"
-                                className="w-full px-4 py-2 border rounded-lg"
-                                value={currentUser.fullname}
-                                onChange={(e) => setCurrentUser({ ...currentUser, fullname: e.target.value })}
-                                required
-                            />
-                            <input
-                                type="email"
-                                placeholder="Email"
-                                className="w-full px-4 py-2 border rounded-lg"
-                                value={currentUser.email}
-                                onChange={(e) => setCurrentUser({ ...currentUser, email: e.target.value })}
-                                required
-                            />
-                            <input
-                                type="tel"
-                                placeholder="Phone"
-                                className="w-full px-4 py-2 border rounded-lg"
-                                value={currentUser.phone}
-                                onChange={(e) => setCurrentUser({ ...currentUser, phone: e.target.value })}
-                                required
-                            />
-                            <input
-                                type="password"
-                                placeholder="Password"
-                                className="w-full px-4 py-2 border rounded-lg"
-                                value={currentUser.password}
-                                onChange={(e) => setCurrentUser({ ...currentUser, password: e.target.value })}
-                                required={formAction === 'add'}
-                            />
-                            <input
-                                type="text"
-                                placeholder="Specialization"
-                                className="w-full px-4 py-2 border rounded-lg"
-                                value={currentUser.specialization}
-                                onChange={(e) => setCurrentUser({ ...currentUser, specialization: e.target.value })}
-                            />
-                            <input
-                                type="number"
-                                placeholder="Years of Experience"
-                                className="w-full px-4 py-2 border rounded-lg"
-                                value={currentUser.yearsOfExperience}
-                                onChange={(e) => setCurrentUser({ ...currentUser, yearsOfExperience: Number(e.target.value) })}
-                            />
-                            <input
-                                type="text"
-                                placeholder="Department"
-                                className="w-full px-4 py-2 border rounded-lg"
-                                value={currentUser.department}
-                                onChange={(e) => setCurrentUser({ ...currentUser, department: e.target.value })}
-                            />
-                            <select
-                                multiple
-                                className="w-full px-4 py-2 border rounded-lg"
-                                value={currentUser.roles}
-                                onChange={(e) => {
-                                    const options = Array.from(e.target.options);
-                                    const selectedRoles = options
-                                        .filter(option => option.selected)
-                                        .map(option => option.value);
-                                    setCurrentUser({ ...currentUser, roles: selectedRoles });
-                                }}
-                            >
-                                <option value="Admin">Admin</option>
-                                <option value="Instructor">Instructor</option>
-                                <option value="Student">Student</option>
-                            </select>
-                            <div className="flex justify-end space-x-2">
-                                <button type="submit" className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
-                                    {formAction === 'add' ? 'Add' : 'Save'}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowForm(false)}
-                                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <AddProfileForm
+                    onClose={() => setShowForm(false)}
+                    onSave={handleAddUser}
+                />
             )}
 
             <div className="overflow-x-auto relative">
