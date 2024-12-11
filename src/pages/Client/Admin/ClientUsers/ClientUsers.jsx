@@ -91,24 +91,44 @@ const ClientUsers = () => {
 
     const handleAddUser = async (userData) => {
         try {
-            const formData = new FormData();
-            Object.keys(userData).forEach(key => {
-                formData.append(key, userData[key]);
-            });
+            const dataToSend = {
+                username: userData.username,
+                password: userData.password,
+                email: userData.email,
+                fullname: userData.fullname,
+                phone: userData.phone,
+                gender: userData.gender,
+                specialization: userData.specialization || '',
+                yearsOfExperience: userData.yearsOfExperience || '',
+                status: userData.status || 'Active',
+                roles: userData.roles || [],
+            };
 
-            const response = await axios.post(`${BASE_URL_API}/users`, formData, {
+            const response = await axios.post(`${BASE_URL_API}/users`, dataToSend, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
+                    'Content-Type': 'application/json',
                 },
             });
+
+            const newUserId = response.data?.userId;
+
+            await handleRoleUpdate(newUserId, userData.roles || []);
+
+            if (userData.photo) {
+                const formData = new FormData();
+                formData.append('file', userData.photo);
+                await axios.put(`${BASE_URL_API}/users/${newUserId}/image`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
+            }
 
             setUsers((prevUsers) => [...prevUsers, response.data]);
             setFilteredUsers((prevFiltered) => [...prevFiltered, response.data]);
             showNotification('success', 'Success', 'User has been added.');
-            setShowForm(false); // Đóng form sau khi thêm người dùng
+            setShowForm(false);
         } catch (error) {
             console.error('Error adding user:', error);
-            showNotification('error', 'Error', 'Unable to add user.');
+            showNotification('error', 'Error', error.response?.data?.message || 'Unable to add user.');
         }
     };
 
@@ -118,7 +138,7 @@ const ClientUsers = () => {
             showNotification('success', 'Success', 'User roles have been updated.');
         } catch (error) {
             console.error('Error updating user roles:', error);
-            showNotification('error', 'Error', 'Unable to update user roles.');
+            showNotification('error', 'Error', error.response?.data?.message || 'Unable to update user roles.');
         }
     };
 
@@ -141,9 +161,9 @@ const ClientUsers = () => {
                 setUsers((prevUsers) => prevUsers.map(user => (user.userId === userId ? response.data : user)));
                 setFilteredUsers((prevFiltered) => prevFiltered.map(user => (user.userId === userId ? response.data : user)));
                 showNotification('success', 'Success', 'User has been updated.');
-
                 await handleRoleUpdate(userId, userData.roles);
             }
+
             setCurrentUser({
                 userId: '',
                 fullname: '',
@@ -286,8 +306,8 @@ const ClientUsers = () => {
                 <table className="w-full">
                     <TableHeader headers={headers} />
                     <tbody>
-                        {currentUsers.map(user => (
-                            <tr key={user.userId} className="hover:bg-gray-50">
+                        {currentUsers.map((user, index) => (
+                            <tr key={`${user.userId}-${index}`} className="hover:bg-gray-50">
                                 <td className="py-2 px-4 border-b w-1/4">
                                     <div className="flex items-center">
                                         <img src={`${BASE_URL}${user.photo || 'default-avatar.jpg'}`} alt={user.fullname} className="h-8 w-8 rounded-full mr-2" />
@@ -300,8 +320,8 @@ const ClientUsers = () => {
                                 <td className="py-2 px-4 border-b w-1/4">
                                     <div className="flex flex-wrap items-center gap-1">
                                         {Array.isArray(user.roles) && user.roles.length > 0 ? (
-                                            user.roles.map((role) => (
-                                                <span key={role} className="px-2 py-1 rounded-full text-sm bg-gray-100 text-gray-800">
+                                            user.roles.map((role, index) => (
+                                                <span key={`${user.userId}-${role}-${index}`} className="px-2 py-1 rounded-full text-sm bg-gray-100 text-gray-800">
                                                     {role}
                                                 </span>
                                             ))
@@ -342,9 +362,9 @@ const ClientUsers = () => {
                     }}
                 >
                     <div className="py-1 max-h-48 overflow-y-auto">
-                        {handleMoreOptions(users.find(user => user.userId === activeDropdown)).map((option) => (
+                        {handleMoreOptions(users.find(user => user.userId === activeDropdown)).map((option, index) => (
                             <button
-                                key={`${activeDropdown}-${option.label}`}
+                                key={`${activeDropdown}-${option.label}-${index}`}
                                 onClick={() => {
                                     option.action();
                                     setActiveDropdown(null);

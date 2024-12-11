@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { User, X, Briefcase, Clock, ChevronDown, Eye, EyeOff, Upload } from 'lucide-react';
+import { User, X, Briefcase, Clock, ChevronDown, Eye, EyeOff, Upload, XIcon } from 'lucide-react';
 import { BASE_URL_API } from '../../api/config';
 import PropTypes from 'prop-types';
 import { useNotification } from '../../components/Notification/NotificationContext';
@@ -12,6 +12,7 @@ const AddProfileForm = ({ onClose, onSave }) => {
         username: '',
         password: '',
         gender: '',
+        phone: '',
         specialization: '',
         yearsOfExperience: '',
         status: 'Active',
@@ -21,10 +22,12 @@ const AddProfileForm = ({ onClose, onSave }) => {
     const [userRoles, setUserRoles] = useState([]);
     const [isRolesOpen, setIsRolesOpen] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [previewImage, setPreviewImage] = useState(null);
+    const [previewImage,] = useState(null);
     const [rolesDropdownPosition, setRolesDropdownPosition] = useState({ top: 0, left: 0 });
+    const [isGenderOpen, setIsGenderOpen] = useState(false); // Added state for gender dropdown
     const { showNotification } = useNotification();
 
+    // Lấy danh sách vai trò từ API
     useEffect(() => {
         const fetchRoleOptions = async () => {
             try {
@@ -34,82 +37,57 @@ const AddProfileForm = ({ onClose, onSave }) => {
                 console.error('Error fetching role options:', error);
             }
         };
-
         fetchRoleOptions();
     }, []);
 
+    // Hàm xử lý thay đổi input
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setNewUser(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (!file.type.startsWith('image/')) {
-                showNotification('error', 'Vui lòng chọn tệp hình ảnh hợp lệ', '');
-                return;
-            }
-            setNewUser(prev => ({ ...prev, photo: file }));
-            setPreviewImage(URL.createObjectURL(file));
-        }
+    // Hàm xử lý thay đổi file
+    const handleFileChange = (e) => {
+        setNewUser(prev => ({ ...prev, photo: e.target.files[0] }));
     };
 
+    // Hàm xử lý gửi dữ liệu
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const { username, password, email, fullname, gender } = newUser;
+        const { username, password, email, fullname, gender, phone } = newUser;
 
-        // Kiểm tra dữ liệu bắt buộc
-        if (!username || !password || !email || !fullname || !gender) {
-            showNotification('error', 'Vui lòng điền đầy đủ thông tin cần thiết', '');
+        // Kiểm tra dữ liệu đầu vào
+        if (!username || !password || !email || !fullname || !gender || !phone || userRoles.length === 0) {
+            showNotification('error', 'Vui lòng điền đầy đủ thông tin cần thiết và chọn vai trò', '');
             return;
         }
 
-        // Kiểm tra nếu ảnh đã được tải lên
-        if (!newUser.photo) {
-            showNotification('error', 'Vui lòng tải lên ảnh đại diện', '');
-            return;
-        }
-
-        const formData = new FormData();
-        Object.keys(newUser).forEach(key => {
-            if (key === 'photo') {
-                formData.append('file', newUser.photo);
-            } else {
-                formData.append(key, newUser[key]);
-            }
-        });
-        userRoles.forEach(role => {
-            formData.append('roles', role);
-        });
-
-        // Kiểm tra nội dung formData
-        for (let [key, value] of formData.entries()) {
-            console.log(key, value); // Hiển thị dữ liệu trong formData
-        }
-
-        try {
-            const response = await axios.post(`${BASE_URL_API}/users`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            onSave(response.data);
-            showNotification('success', 'Thêm người dùng thành công', '');
-            onClose();
-        } catch (error) {
-            showNotification('error', 'Thêm người dùng thất bại', error.response?.data?.message || 'Vui lòng thử lại!');
-            console.error('Error adding user:', error);
-        }
+        // Tạo đối tượng dữ liệu người dùng
+        const userData = {
+            username,
+            password,
+            email,
+            fullname,
+            gender,
+            phone,
+            specialization: newUser.specialization || '',
+            yearsOfExperience: newUser.yearsOfExperience || '',
+            status: newUser.status,
+            roles: userRoles,
+            photo: newUser.photo, // Đính kèm hình ảnh nếu có
+        };
+        // Gọi hàm onSave từ component cha
+        onSave(userData);
     };
 
+    // Hàm thêm vai trò
     const handleAddRole = (roleToAdd) => {
         if (roleToAdd && !userRoles.includes(roleToAdd)) {
             setUserRoles(prev => [...prev, roleToAdd]);
         }
-        setIsRolesOpen(false);
     };
 
+    // Hàm xóa vai trò
     const handleRemoveRole = (roleToRemove) => {
         setUserRoles(prev => prev.filter(role => role !== roleToRemove));
     };
@@ -152,7 +130,7 @@ const AddProfileForm = ({ onClose, onSave }) => {
                                         type="file"
                                         accept="image/*"
                                         className="hidden"
-                                        onChange={handleImageUpload}
+                                        onChange={handleFileChange}
                                     />
                                 </label>
                             </div>
@@ -231,75 +209,34 @@ const AddProfileForm = ({ onClose, onSave }) => {
                         </div>
                     </div>
 
-                    {/* Row 3: Gender and User Roles */}
+                    {/* Row 3: Gender and Phone */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label htmlFor="gender" className="block text-sm font-medium text-gray-700">Gender</label>
-                            <select
-                                id="gender"
-                                name="gender"
-                                value={newUser.gender}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 border rounded-lg"
-                            >
-                                <option value="">Select gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                            </select>
-                        </div>
-                        <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">User Roles <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-medium text-gray-700">Gender <span className="text-red-500">*</span></label>
                             <div className="relative">
                                 <div
-                                    className="w-full min-h-[38px] px-3 py-2 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent cursor-pointer bg-white"
-                                    onClick={(e) => {
-                                        const rect = e.currentTarget.getBoundingClientRect();
-                                        setRolesDropdownPosition({
-                                            top: rect.bottom + window.scrollY,
-                                            left: rect.left + window.scrollX,
-                                        });
-                                        setIsRolesOpen(!isRolesOpen);
-                                    }}
+                                    className="w-full min-h-[38px] px-3 py-2 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent cursor-pointer bg-white flex items-center justify-between"
+                                    onClick={() => setIsGenderOpen(!isGenderOpen)}
                                 >
-                                    {userRoles.length === 0 && <span className="text-gray-400">Select roles</span>}
-                                    <div className="flex flex-wrap gap-1">
-                                        {userRoles.map(role => (
-                                            <div key={role} className="inline-flex items-center gap-1 bg-gray-100 px-2 py-1 rounded text-sm">
-                                                {role}
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleRemoveRole(role);
-                                                    }}
-                                                    className="hover:text-gray-700"
-                                                >
-                                                    <X className="h-3 w-3" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                                        <ChevronDown className="h-4 w-4 text-gray-400" />
-                                    </div>
+                                    <span className={newUser.gender ? "text-gray-900" : "text-gray-400"}>
+                                        {newUser.gender || "Select gender"}
+                                    </span>
+                                    <ChevronDown className="h-4 w-4 text-gray-400" />
                                 </div>
-                                {isRolesOpen && (
-                                    <div
-                                        className="fixed z-50 w-full max-w-[calc(100%-3rem)] md:max-w-[300px] bg-white border rounded-lg shadow-lg"
-                                        style={{
-                                            top: `${rolesDropdownPosition.top}px`,
-                                            left: `${rolesDropdownPosition.left}px`,
-                                        }}
-                                    >
-                                        <div className="py-1 max-h-60 overflow-y-auto">
-                                            {getUnselectedRoles().map(role => (
+                                {isGenderOpen && (
+                                    <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg">
+                                        <div className="py-1">
+                                            {["Male", "Female", "Other"].map((gender) => (
                                                 <button
-                                                    key={role.roleId}
+                                                    key={gender}
                                                     type="button"
-                                                    onClick={() => handleAddRole(role.roleName)}
+                                                    onClick={() => {
+                                                        setNewUser(prev => ({ ...prev, gender }));
+                                                        setIsGenderOpen(false);
+                                                    }}
                                                     className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                                                 >
-                                                    {role.roleName}
+                                                    {gender}
                                                 </button>
                                             ))}
                                         </div>
@@ -307,9 +244,82 @@ const AddProfileForm = ({ onClose, onSave }) => {
                                 )}
                             </div>
                         </div>
+                        <div className="space-y-2">
+                            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
+                            <input
+                                id="phone"
+                                name="phone"
+                                type="tel"
+                                value={newUser.phone}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border rounded-lg"
+                            />
+                        </div>
                     </div>
 
-                    {/* Row 4: Specialization, Years of Experience (conditional) */}
+                    {/* Row 4: User Roles */}
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">User Roles <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                            <div
+                                className="w-full min-h-[38px] px-3 py-2 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent cursor-pointer bg-white"
+                                onClick={(e) => {
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    setRolesDropdownPosition({
+                                        top: rect.bottom + window.scrollY,
+                                        left: rect.left + window.scrollX,
+                                    });
+                                    setIsRolesOpen(!isRolesOpen);
+                                }}
+                            >
+                                {userRoles.length === 0 && <span className="text-gray-400">--</span>}
+                                <div className="flex flex-wrap gap-1">
+                                    {userRoles.map(role => (
+                                        <div key={role} className="inline-flex items-center gap-1 bg-gray-100 px-2 py-1 rounded text-sm">
+                                            {role}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRemoveRole(role);
+                                                }}
+                                                className="hover:text-gray-700"
+                                            >
+                                                <XIcon className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                    <ChevronDown className="h-4 w-4 text-gray-400" />
+                                </div>
+                            </div>
+                            {isRolesOpen && (
+                                <div
+                                    className="fixed z-50 w-full max-w-[calc(100%-3rem)] md:max-w-[300px] bg-white border rounded-lg shadow-lg"
+                                    style={{
+                                        top: `${rolesDropdownPosition.top}px`,
+                                        left: `${rolesDropdownPosition.left}px`,
+                                    }}
+                                >
+                                    <div className="py-1 max-h-60 overflow-y-auto">
+                                        {getUnselectedRoles().map(role => (
+                                            <button
+                                                key={role.roleId}
+                                                type="button"
+                                                onClick={() => handleAddRole(role.roleName)}
+                                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                                            >
+                                                {role.roleName}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Row 5: Specialization, Years of Experience (conditional) */}
                     {isInstructor && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
