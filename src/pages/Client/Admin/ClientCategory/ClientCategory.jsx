@@ -1,73 +1,86 @@
-import { useEffect, useState } from 'react';
-import { Search, Plus, Edit, Trash2 } from 'lucide-react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { Plus, MoreVertical, Edit, Trash } from 'lucide-react';
 import axios from 'axios';
 import { BASE_URL_API } from '../../../../api/config';
 import { useNotification } from '../../../../components/Notification/NotificationContext';
+import Pagination from '../../../../components/Pagination/Pagination';
+import Count from '../../../../components/Count/Count';
+import InputSearch from '../../../../components/Search/Search';
+import TableHeader from '../../../../components/Table/TableHeader';
+import CategoryForm from '../../../../components/Form/CategoryForm';
 
 const ClientCategory = () => {
     const [categories, setCategories] = useState([]);
+    const [filteredCategories, setFilteredCategories] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [currentCategory, setCurrentCategory] = useState({ categoryName: '', description: '' });
+    const [currentCategory, setCurrentCategory] = useState({
+        categoryId: '',
+        categoryName: '',
+        description: ''
+    });
     const [showForm, setShowForm] = useState(false);
-    const [formAction, setFormAction] = useState('add'); // 'add' hoặc 'edit'
+    const [formAction, setFormAction] = useState('add');
     const { showNotification } = useNotification();
+    const [activeDropdown, setActiveDropdown] = useState(null);
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const categoriesPerPage = 8;
+    const headers = ['Category Name', 'Description', ''];
+
+    const dropdownRef = useRef(null);
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
                 const response = await axios.get(`${BASE_URL_API}/categories`);
                 setCategories(response.data);
+                setFilteredCategories(response.data);
             } catch (error) {
                 console.error('Error fetching categories:', error);
-                showNotification('error', 'Lỗi tải dữ liệu', 'Không tìm thấy thông tin danh mục.');
+                showNotification('error', 'Error loading data', 'Unable to fetch category information.');
             }
         };
 
         fetchCategories();
-    }, [showNotification]);
+    }, []);
 
-    const handleSearch = async (term) => {
-        try {
-            const response = await axios.get(`${BASE_URL_API}/categories/search`, {
-                params: { name: term },
-            });
-            setCategories(response.data);
-        } catch (error) {
-            console.error('Error searching categories:', error);
-            showNotification('error', 'Lỗi tìm kiếm', 'Không thể tìm danh mục.');
+    const handleSearch = (term) => {
+        setSearchTerm(term);
+        if (!term) {
+            setFilteredCategories(categories);
+            setCurrentPage(1);
+            return;
         }
+
+        const filtered = categories.filter(category =>
+            category.categoryName.toLowerCase().includes(term.toLowerCase()) ||
+            category.description.toLowerCase().includes(term.toLowerCase())
+        );
+        setFilteredCategories(filtered);
+        setCurrentPage(1);
     };
 
-    const filteredCategories = categories.filter(category =>
-        category.categoryName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        category.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (categoryData) => {
         try {
             let response;
             if (formAction === 'add') {
-                response = await axios.post(`${BASE_URL_API}/categories`, currentCategory);
+                response = await axios.post(`${BASE_URL_API}/categories`, categoryData);
                 setCategories([...categories, response.data]);
-                showNotification('success', 'Thành công', 'Danh mục đã được thêm.');
+                setFilteredCategories([...filteredCategories, response.data]);
+                showNotification('success', 'Success', 'Category has been added.');
             } else if (formAction === 'edit') {
-                response = await axios.put(`${BASE_URL_API}/categories/${currentCategory.categoryId}`, currentCategory);
-                setCategories(categories.map(cat => cat.categoryId === currentCategory.categoryId ? response.data : cat));
-                showNotification('success', 'Thành công', 'Danh mục đã được cập nhật.');
+                response = await axios.put(`${BASE_URL_API}/categories/${categoryData.categoryId}`, categoryData);
+                setCategories(categories.map(category => (category.categoryId === categoryData.categoryId ? response.data : category)));
+                setFilteredCategories(filteredCategories.map(category => (category.categoryId === categoryData.categoryId ? response.data : category)));
+                showNotification('success', 'Success', 'Category has been updated.');
             }
-            setCurrentCategory({ categoryName: '', description: '' });
+            setCurrentCategory({ categoryId: '', categoryName: '', description: '' });
             setShowForm(false);
         } catch (error) {
             console.error('Error:', error);
-            showNotification('error', 'Lỗi', 'Không thể thực hiện thao tác.');
+            showNotification('error', 'Error', 'Unable to perform the operation.');
         }
-    };
-
-    const handleEditCategory = (category) => {
-        setCurrentCategory({ categoryName: category.categoryName, description: category.description, categoryId: category.categoryId });
-        setFormAction('edit');
-        setShowForm(true);
     };
 
     const handleDeleteCategory = async (categoryId) => {
@@ -76,7 +89,7 @@ const ClientCategory = () => {
             const relatedCourses = response.data;
 
             if (relatedCourses.length > 0) {
-                const confirmDelete = window.confirm("Danh mục này có các khóa học liên quan. Bạn có chắc chắn muốn xóa không?");
+                const confirmDelete = window.confirm("This category has related courses. Are you sure you want to delete it?");
                 if (!confirmDelete) return;
             }
 
@@ -86,11 +99,72 @@ const ClientCategory = () => {
 
             await axios.delete(`${BASE_URL_API}/categories/${categoryId}`);
             setCategories(categories.filter(c => c.categoryId !== categoryId));
-            showNotification('success', 'Thành công', 'Danh mục đã được xóa.');
+            setFilteredCategories(filteredCategories.filter(c => c.categoryId !== categoryId));
+            showNotification('success', 'Success', 'Category has been deleted.');
         } catch (error) {
             console.error('Error deleting category:', error);
-            showNotification('error', 'Lỗi xóa danh mục', 'Không thể xóa danh mục.');
+            showNotification('error', 'Error deleting category', 'Unable to delete the category.');
         }
+    };
+
+    const handleMoreOptions = (category) => {
+        return [
+            {
+                label: 'Edit category',
+                action: () => {
+                    setCurrentCategory(category);
+                    setShowForm(true);
+                    setFormAction('edit');
+                },
+                icon: <Edit className="h-4 w-4 mr-2" />
+            },
+            { label: 'Delete category', action: () => handleDeleteCategory(category.categoryId), icon: <Trash className="h-4 w-4 mr-2" /> },
+        ];
+    };
+
+    const indexOfLastCategory = currentPage * categoriesPerPage;
+    const indexOfFirstCategory = indexOfLastCategory - categoriesPerPage;
+    const currentCategories = filteredCategories.slice(indexOfFirstCategory, indexOfLastCategory);
+    const totalPages = Math.ceil(filteredCategories.length / categoriesPerPage);
+
+    const handleClickOutside = useCallback((event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            setActiveDropdown(null);
+        }
+    }, []);
+
+    useEffect(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [handleClickOutside]);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setActiveDropdown(null);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
+    const handleMoreVerticalClick = (event, categoryId) => {
+        event.stopPropagation();
+        const rect = event.currentTarget.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        const dropdownHeight = 100;
+
+        setDropdownPosition({
+            top: spaceBelow > dropdownHeight || spaceBelow > spaceAbove
+                ? rect.bottom + window.scrollY
+                : rect.top - dropdownHeight + window.scrollY,
+            left: rect.right - 192 + window.scrollX
+        });
+        setActiveDropdown(activeDropdown === categoryId ? null : categoryId);
     };
 
     return (
@@ -98,85 +172,96 @@ const ClientCategory = () => {
             <h2 className="text-2xl font-bold mb-4">Categories</h2>
 
             <div className="flex justify-between items-center mb-4">
-                <div className="relative w-64">
-                    <input
-                        type="text"
+                <Count count={filteredCategories.length} title="Total Categories" />
+                <div className="flex items-center">
+                    <InputSearch
+                        searchTerm={searchTerm}
+                        onSearch={handleSearch}
                         placeholder="Search categories..."
-                        className="w-full pl-10 pr-4 py-2 border rounded-lg"
-                        value={searchTerm}
-                        onChange={(e) => {
-                            setSearchTerm(e.target.value);
-                            handleSearch(e.target.value);
-                        }}
                     />
-                    <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    <button
+                        onClick={() => {
+                            setShowForm(true);
+                            setFormAction('add');
+                            setCurrentCategory({ categoryId: '', categoryName: '', description: '' });
+                        }}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center"
+                    >
+                        <Plus className="h-5 w-5 mr-2" />
+                        Add Category
+                    </button>
                 </div>
-                <button
-                    onClick={() => {
-                        setShowForm(true);
-                        setFormAction('add');
-                        setCurrentCategory({ categoryName: '', description: '' });
-                    }}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center"
-                >
-                    <Plus className="h-5 w-5 mr-2" />
-                    Add Category
-                </button>
             </div>
 
             {showForm && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start pt-20 z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-                        <h3 className="text-xl font-bold mb-4">{formAction === 'add' ? 'Add New Category' : 'Edit Category'}</h3>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <input
-                                type="text"
-                                placeholder="Category Name"
-                                className="w-full px-4 py-2 border rounded-lg"
-                                value={currentCategory.categoryName}
-                                onChange={(e) => setCurrentCategory({ ...currentCategory, categoryName: e.target.value })}
-                                required
-                            />
-                            <input
-                                type="text"
-                                placeholder="Description"
-                                className="w-full px-4 py-2 border rounded-lg"
-                                value={currentCategory.description}
-                                onChange={(e) => setCurrentCategory({ ...currentCategory, description: e.target.value })}
-                            />
-                            <div className="flex justify-end space-x-2">
-                                <button type="submit" className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
-                                    {formAction === 'add' ? 'Add' : 'Save'}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowForm(false)}
-                                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
+                <CategoryForm
+                    category={currentCategory}
+                    onClose={() => setShowForm(false)}
+                    onSave={handleSubmit}
+                    formAction={formAction}
+                />
+            )}
+
+            <div className="overflow-x-auto relative">
+                <table className="w-full">
+                    <TableHeader headers={headers} />
+                    <tbody>
+                        {currentCategories.map(category => (
+                            <tr key={category.categoryId} className="hover:bg-gray-50">
+                                <td className="py-2 px-4 border-b">
+                                    <div className="font-semibold">{category.categoryName}</div>
+                                </td>
+                                <td className="py-2 px-4 border-b">
+                                    <div>{category.description}</div>
+                                </td>
+                                <td className="py-2 px-4 border-b">
+                                    <div className="flex justify-end">
+                                        <button
+                                            onClick={(e) => handleMoreVerticalClick(e, category.categoryId)}
+                                            className="p-1 hover:bg-gray-200 rounded-full"
+                                        >
+                                            <MoreVertical className="h-5 w-5" />
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {activeDropdown && (
+                <div
+                    ref={dropdownRef}
+                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
+                    style={{
+                        top: `${dropdownPosition.top}px`,
+                        left: `${dropdownPosition.left}px`,
+                    }}
+                >
+                    <div className="py-1">
+                        {handleMoreOptions(categories.find(category => category.categoryId === activeDropdown)).map((option) => (
+                            <button
+                                key={`${activeDropdown}-${option.label}`}
+                                onClick={() => {
+                                    option.action();
+                                    setActiveDropdown(null);
+                                }}
+                                className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                                {option.icon}
+                                {option.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
             )}
 
-            <div className="space-y-4">
-                {filteredCategories.map(category => (
-                    <div key={category.categoryId} className="border p-4 rounded-lg hover:shadow-custom-1">
-                        <h3 className="text-lg font-semibold">{category.categoryName}</h3>
-                        <p className="text-gray-600">{category.description}</p>
-                        <div className="flex justify-end space-x-2 mt-2">
-                            <button onClick={() => handleEditCategory(category)} className="p-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">
-                                <Edit className="h-4 w-4" />
-                            </button>
-                            <button onClick={() => handleDeleteCategory(category.categoryId)} className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
-                                <Trash2 className="h-4 w-4" />
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+            />
         </div>
     );
 }
