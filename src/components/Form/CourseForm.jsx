@@ -5,7 +5,17 @@ import { useNotification } from '../../components/Notification/NotificationConte
 import axios from 'axios';
 import { BASE_URL_API } from '../../api/config';
 
-const CourseForm = ({ course, onClose, onSave, formAction, instructor }) => {
+const CourseForm = ({ course, onClose, onSave, formAction }) => {
+    const [newCourse, setNewCourse] = useState({
+        title: '',
+        description: '',
+        imageCourses: null,
+        price: 0,
+        rating: 0,
+        categoryId: 0,
+        instructorId: 0,
+        totalStudents: 0,
+    });
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [price, setPrice] = useState('');
@@ -28,16 +38,16 @@ const CourseForm = ({ course, onClose, onSave, formAction, instructor }) => {
         if (course && formAction === 'edit') {
             setTitle(course.title);
             setDescription(course.description);
-            setPrice(course.price.toString());
-            setRating(course.rating.toString());
+            setPrice(course.price);
+            setRating(course.rating);
             setImageCourses(course.imageCourses || '');
-            setTotalStudents(course.totalStudents?.toString() || '0');
-            setInstructorName(instructor || course.instructor || ''); // Nhận tên người dùng từ prop
+            setTotalStudents(course.totalStudents || '0');
             setCategory(course.category || null);
-        } else {
-            setInstructorName(instructor || ''); // Nhận tên người dùng khi thêm mới khóa học
+            setInstructorName(course.instructor.fullname);
+        } else if (formAction === 'add') {
+            setInstructorName(course.instructor.fullname || '');
         }
-    }, [course, formAction, instructor]); // Thêm instructor vào dependencies
+    }, [course, formAction,]); // Thêm instructor vào dependencies
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -55,48 +65,39 @@ const CourseForm = ({ course, onClose, onSave, formAction, instructor }) => {
         fetchCategories();
     }, [showNotification]);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        const courseData = new FormData();
-        courseData.append('title', title);
-        courseData.append('description', description);
-        courseData.append('price', parseFloat(price));
-        courseData.append('rating', parseFloat(rating));
-        courseData.append('totalStudents', parseInt(totalStudents, 10));
-        courseData.append('instructor', instructorName); // Sử dụng instructorName
-        courseData.append('categoryId', category ? category.categoryId : '');
 
-        if (imageFile) {
-            courseData.append('imageCourses', imageFile);
-        } else if (imageCourses) {
-            courseData.append('imageCourses', imageCourses);
+        const { title, description, price, rating, categoryId, instructorId } = newCourse;
+
+        // Kiểm tra dữ liệu đầu vào
+        if (!title || !description || price <= 0 || rating <= 0 || categoryId <= 0 || instructorId <= 0) {
+            showNotification('error', 'Vui lòng điền đầy đủ thông tin cần thiết và chọn danh mục', '');
+            return;
         }
+
+        // Tạo đối tượng dữ liệu người dùng
+        const userData = {
+            title,
+            description,
+            price,
+            rating,
+            categoryId: newCourse.categoryId,
+            instructorId,
+            imageCourses: newCourse.imageCourses, // Đính kèm hình ảnh nếu có
+            totalStudents: newCourse.totalStudents || 0
+        };
 
         if (formAction === 'edit') {
-            courseData.append('courseId', course.courseId);
-        }
-
-        try {
-            const response = await axios.post(`${BASE_URL_API}/courses`, courseData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            showNotification('success', 'Success', `Course ${formAction === 'add' ? 'added' : 'updated'} successfully.`);
-            onSave(response.data);
-            onClose();
-        } catch (error) {
-            console.error('Error submitting form:', error);
-            showNotification('error', 'Error', `Failed to ${formAction} course. Please try again.`);
+            onSave({ ...userData, courseId: course.courseId }); // Giả định courseId có trong đối tượng course
+        } else {
+            // Nếu không, gọi hàm lưu mới
+            onSave(userData);
         }
     };
 
     const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setImageFile(file);
-            setImageCourses(URL.createObjectURL(file));
-        }
+        setNewCourse(prev => ({ ...prev, photo: e.target.files[0] }));
     };
 
     const handleRemoveImage = () => {
@@ -257,8 +258,8 @@ const CourseForm = ({ course, onClose, onSave, formAction, instructor }) => {
                                 type="text"
                                 value={instructorName}
                                 onChange={(e) => setInstructorName(e.target.value)}
-                                required
-                                className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                readOnly
+                                className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-500"
                                 placeholder="Enter instructor name"
                             />
                         </div>
@@ -349,17 +350,18 @@ CourseForm.propTypes = {
         rating: PropTypes.number,
         imageCourses: PropTypes.string,
         totalStudents: PropTypes.number,
-        instructor: PropTypes.string,
+        instructor: PropTypes.shape({
+            userId: PropTypes.number.isRequired,
+            fullname: PropTypes.string,
+        }),
         category: PropTypes.shape({
-            categoryId: PropTypes.string,
+            categoryId: PropTypes.number.isRequired,
             categoryName: PropTypes.string,
-            description: PropTypes.string
         })
     }),
     onClose: PropTypes.func.isRequired,
     onSave: PropTypes.func.isRequired,
     formAction: PropTypes.oneOf(['add', 'edit']).isRequired,
-    instructor: PropTypes.string // Thêm propTypes cho instructor
 };
 
 export default CourseForm;

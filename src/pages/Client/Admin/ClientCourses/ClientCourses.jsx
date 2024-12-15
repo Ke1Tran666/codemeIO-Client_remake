@@ -21,14 +21,14 @@ const ClientCourses = () => {
         rating: 0,
         ImageCourses: '',
         totalStudents: 0,
-        instructor: '' // Thêm trường cho instructor
+        instructor: {}, // Đảm bảo instructor là đối tượng
     });
     const [showForm, setShowForm] = useState(false);
     const [formAction, setFormAction] = useState('add');
     const { showNotification } = useNotification();
     const [activeDropdown, setActiveDropdown] = useState(null);
     const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
-    const [instructorName, setInstructorName] = useState('');
+    const [instructorUser, setInstructorUser] = useState({ userId: 0, fullname: `` });
     const [currentPage, setCurrentPage] = useState(1);
     const coursesPerPage = 8;
     const headers = ['Course', 'Description', 'Price', 'Rating', 'Total Students', ''];
@@ -40,7 +40,7 @@ const ClientCourses = () => {
             const fetchUserInfo = async () => {
                 try {
                     const response = await axios.get(`${BASE_URL_API}/users/${user.userId}`);
-                    setInstructorName(response.data.fullname);
+                    setInstructorUser(response.data);
                 } catch (error) {
                     console.error('Error fetching user information:', error);
                     showNotification('error', 'Error loading data', 'Unable to fetch user information.');
@@ -48,9 +48,7 @@ const ClientCourses = () => {
             };
             fetchUserInfo();
         }
-    }, []);
 
-    useEffect(() => {
         const fetchCourses = async () => {
             try {
                 const response = await axios.get(`${BASE_URL_API}/courses`);
@@ -62,7 +60,7 @@ const ClientCourses = () => {
             }
         };
         fetchCourses();
-    }, []);
+    }, [showNotification]);
 
     const handleSearch = (term) => {
         setSearchTerm(term);
@@ -80,30 +78,59 @@ const ClientCourses = () => {
         setCurrentPage(1);
     };
 
+    const handleAddCourse = () => {
+        setCurrentCourse({
+            courseId: '',
+            title: '',
+            description: '',
+            price: 0,
+            rating: 0,
+            ImageCourses: '',
+            totalStudents: 0,
+            instructor: instructorUser // Đặt instructor là một đối tượng
+        });
+        setShowForm(true);
+        setFormAction('add');
+    };
+
     const handleSubmit = async (courseData) => {
         try {
             let response;
             const config = {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'application/json' // Sử dụng application/json cho dữ liệu khác
                 }
             };
 
+            const coursePayload = {
+                ...courseData,
+                instructor: formAction === 'add' ? { fullname: instructorUser } : currentCourse.instructor // Đảm bảo instructor là đối tượng
+            };
+
             if (formAction === 'add') {
-                courseData.append('instructor', instructorName); // Lấy tên người dùng khi thêm mới khoá học
-                response = await axios.post(`${BASE_URL_API}/courses`, courseData, config);
+                if (courseData.get('imageCourses')) {
+                    const formData = new FormData();
+                    Object.keys(coursePayload).forEach(key => {
+                        formData.append(key, coursePayload[key]);
+                    });
+                    response = await axios.post(`${BASE_URL_API}/courses`, formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' } // Chỉ gửi hình ảnh bằng multipart/form-data
+                    });
+                } else {
+                    response = await axios.post(`${BASE_URL_API}/courses`, coursePayload, config);
+                }
                 setCourses([...courses, response.data]);
                 setFilteredCourses([...filteredCourses, response.data]);
                 showNotification('success', 'Success', 'Course has been added.');
             } else if (formAction === 'edit') {
                 // Sử dụng instructor từ currentCourse
-                courseData.append('instructor', currentCourse.instructor);
-                response = await axios.put(`${BASE_URL_API}/courses/${courseData.get('courseId')}`, courseData, config);
+                response = await axios.put(`${BASE_URL_API}/courses/${courseData.get('courseId')}`, coursePayload, config);
                 setCourses(courses.map(course => (course.courseId === response.data.courseId ? response.data : course)));
                 setFilteredCourses(filteredCourses.map(course => (course.courseId === response.data.courseId ? response.data : course)));
                 showNotification('success', 'Success', 'Course has been updated.');
             }
-            setCurrentCourse({ courseId: '', title: '', description: '', price: 0, rating: 0, ImageCourses: '', totalStudents: 0 });
+
+            setCurrentCourse({ courseId: '', title: '', description: '', price: 0, rating: 0, ImageCourses: null, totalStudents: 0 });
             setShowForm(false);
         } catch (error) {
             console.error('Error:', error);
@@ -130,8 +157,8 @@ const ClientCourses = () => {
                 action: () => {
                     setCurrentCourse({
                         ...course,
-                        instructor: course.instructor.fullname || '', // Lấy fullname hoặc để trống
-                        category: course.category ? { ...course.category, categoryId: course.category.categoryId.toString() } : null
+                        instructor: course.instructor || {},
+                        category: course.category ? { ...course.category, categoryId: course.category.categoryId } : null
                     });
                     setShowForm(true);
                     setFormAction('edit');
@@ -200,11 +227,7 @@ const ClientCourses = () => {
                         placeholder="Search courses..."
                     />
                     <button
-                        onClick={() => {
-                            setShowForm(true);
-                            setFormAction('add');
-                            setCurrentCourse({ courseId: '', title: '', description: '', price: 0, rating: 0, ImageCourses: '', totalStudents: 0 });
-                        }}
+                        onClick={handleAddCourse}
                         className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center"
                     >
                         <Plus className="h-5 w-5 mr-2" />
@@ -219,8 +242,6 @@ const ClientCourses = () => {
                     onClose={() => setShowForm(false)}
                     onSave={handleSubmit}
                     formAction={formAction}
-                    instructor={formAction === 'add' ? instructorName : currentCourse.instructor.fullname
-                    } // Truyền tên người dùng hoặc instructor của khóa học
                 />
             )}
 
