@@ -87,44 +87,62 @@ const ClientCourses = () => {
             rating: 0,
             ImageCourses: '',
             totalStudents: 0,
-            instructor: instructorUser // Đặt instructor là một đối tượng
+            instructor: instructorUser
         });
         setShowForm(true);
         setFormAction('add');
     };
 
-    const handleSubmit = async (courseData) => {
+    const handleSubmit = async (courseData, imageFile) => {
         try {
             let response;
             const config = {
                 headers: {
-                    'Content-Type': 'application/json' // Sử dụng application/json cho dữ liệu khác
-                }
+                    'Content-Type': 'application/json',
+                },
             };
 
-            const coursePayload = {
+            // Đảm bảo instructorId và categoryId được bao gồm
+            courseData.instructorId = courseData.instructor.userId; // id của giảng viên
+            courseData.categoryId = courseData.category ? courseData.category.categoryId : null; // id của danh mục
+
+            const updatedCourseData = {
                 ...courseData,
-                instructor: formAction === 'add' ? { fullname: instructorUser } : currentCourse.instructor // Đảm bảo instructor là đối tượng
+                price: parseFloat(courseData.price) || 0,
             };
 
             if (formAction === 'add') {
-                if (courseData.get('imageCourses')) {
+                // Tạo khóa học mà không cần hình ảnh trước
+                response = await axios.post(`${BASE_URL_API}/courses`, updatedCourseData, config);
+                const newCourseId = response.data.courseId;
+
+                // Nếu có hình ảnh, tải lên nó bây giờ
+                if (imageFile) {
                     const formData = new FormData();
-                    Object.keys(coursePayload).forEach(key => {
-                        formData.append(key, coursePayload[key]);
+                    formData.append('file', imageFile); // Đảm bảo tên tệp là 'file'
+
+                    // Gọi endpoint upload-image để lưu hình ảnh
+                    await axios.post(`${BASE_URL_API}/courses/${newCourseId}/upload-image`, formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' },
                     });
-                    response = await axios.post(`${BASE_URL_API}/courses`, formData, {
-                        headers: { 'Content-Type': 'multipart/form-data' } // Chỉ gửi hình ảnh bằng multipart/form-data
-                    });
-                } else {
-                    response = await axios.post(`${BASE_URL_API}/courses`, coursePayload, config);
                 }
+
                 setCourses([...courses, response.data]);
                 setFilteredCourses([...filteredCourses, response.data]);
                 showNotification('success', 'Success', 'Course has been added.');
             } else if (formAction === 'edit') {
-                // Sử dụng instructor từ currentCourse
-                response = await axios.put(`${BASE_URL_API}/courses/${courseData.get('courseId')}`, coursePayload, config);
+                if (imageFile) {
+                    const formData = new FormData();
+                    formData.append('file', imageFile); // Đảm bảo tên tệp là 'file'
+
+                    // Gọi endpoint upload-image để cập nhật hình ảnh
+                    await axios.post(`${BASE_URL_API}/courses/${courseData.courseId}/upload-image`, formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' },
+                    });
+                }
+
+                // Cập nhật khóa học
+                response = await axios.put(`${BASE_URL_API}/courses/${updatedCourseData.courseId}`, updatedCourseData, config);
                 setCourses(courses.map(course => (course.courseId === response.data.courseId ? response.data : course)));
                 setFilteredCourses(filteredCourses.map(course => (course.courseId === response.data.courseId ? response.data : course)));
                 showNotification('success', 'Success', 'Course has been updated.');
@@ -134,7 +152,7 @@ const ClientCourses = () => {
             setShowForm(false);
         } catch (error) {
             console.error('Error:', error);
-            showNotification('error', 'Error', 'Unable to perform the operation.');
+            showNotification('error', 'Error', 'Unable to perform the operation: ' + error.message);
         }
     };
 

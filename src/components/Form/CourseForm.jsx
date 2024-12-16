@@ -3,22 +3,22 @@ import { X, ChevronDown } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { useNotification } from '../../components/Notification/NotificationContext';
 import axios from 'axios';
-import { BASE_URL_API } from '../../api/config';
+import { BASE_URL, BASE_URL_API } from '../../api/config';
 
 const CourseForm = ({ course, onClose, onSave, formAction }) => {
-    const [newCourse, setNewCourse] = useState({
-        title: '',
-        description: '',
-        imageCourses: null,
-        price: 0,
-        rating: 0,
-        categoryId: 0,
-        instructorId: 0,
-        totalStudents: 0,
-    });
+    // const [newCourse, setNewCourse] = useState({
+    //     title: '',
+    //     description: '',
+    //     imageCourses: null,
+    //     price: 0,
+    //     rating: 0,
+    //     categoryId: 0,
+    //     instructorId: 0,
+    //     totalStudents: 0,
+    // });
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [price, setPrice] = useState('');
+    const [price, setPrice] = useState('0'); // Updated initial state for price
     const [rating, setRating] = useState('');
     const [imageCourses, setImageCourses] = useState('');
     const [totalStudents, setTotalStudents] = useState('');
@@ -68,36 +68,40 @@ const CourseForm = ({ course, onClose, onSave, formAction }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const { title, description, price, rating, categoryId, instructorId } = newCourse;
-
-        // Kiểm tra dữ liệu đầu vào
-        if (!title || !description || price <= 0 || rating <= 0 || categoryId <= 0 || instructorId <= 0) {
-            showNotification('error', 'Vui lòng điền đầy đủ thông tin cần thiết và chọn danh mục', '');
-            return;
-        }
-
-        // Tạo đối tượng dữ liệu người dùng
-        const userData = {
+        const courseData = {
             title,
             description,
-            price,
-            rating,
-            categoryId: newCourse.categoryId,
-            instructorId,
-            imageCourses: newCourse.imageCourses, // Đính kèm hình ảnh nếu có
-            totalStudents: newCourse.totalStudents || 0
+            price: parseFloat(price) || 0, // Updated price handling
+            rating: parseFloat(rating),
+            categoryId: category ? category.categoryId : null,
+            instructorId: course.instructor.userId,
+            totalStudents: parseInt(totalStudents, 10),
+            instructor: course.instructor,
+            category: category
         };
 
         if (formAction === 'edit') {
-            onSave({ ...userData, courseId: course.courseId }); // Giả định courseId có trong đối tượng course
-        } else {
-            // Nếu không, gọi hàm lưu mới
-            onSave(userData);
+            courseData.courseId = course.courseId;
         }
+
+        onSave(courseData, imageFile);
     };
 
     const handleImageChange = (e) => {
-        setNewCourse(prev => ({ ...prev, photo: e.target.files[0] }));
+        const file = e.target.files[0];
+        setImageFile(file);
+        setImageCourses(URL.createObjectURL(file));
+    };
+
+    const handleImagePreview = (e) => {
+        e.preventDefault();
+        if (imageFile) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImageCourses(reader.result);
+            };
+            reader.readAsDataURL(imageFile);
+        }
     };
 
     const handleRemoveImage = () => {
@@ -210,14 +214,6 @@ const CourseForm = ({ course, onClose, onSave, formAction }) => {
                             </label>
                             <div className="flex items-center space-x-2">
                                 <input
-                                    id="ImageCourses"
-                                    type="text"
-                                    value={imageCourses}
-                                    onChange={(e) => setImageCourses(e.target.value)}
-                                    className="flex-grow px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Enter image URL or upload a file"
-                                />
-                                <input
                                     type="file"
                                     accept="image/*"
                                     onChange={handleImageChange}
@@ -229,13 +225,22 @@ const CourseForm = ({ course, onClose, onSave, formAction }) => {
                                     onClick={() => fileInputRef.current.click()}
                                     className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
                                 >
-                                    Upload
+                                    Choose Image
                                 </button>
+                                {imageFile && (
+                                    <button
+                                        type="button"
+                                        onClick={handleImagePreview}
+                                        className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                                    >
+                                        Preview
+                                    </button>
+                                )}
                             </div>
-                            {(imageCourses || imageFile) && (
+                            {imageCourses && (
                                 <div className="mt-2 flex items-center">
                                     <img
-                                        src={imageCourses}
+                                        src={`${BASE_URL}${imageCourses}`}
                                         alt="Course preview"
                                         className="w-16 h-16 object-cover rounded-md"
                                     />
