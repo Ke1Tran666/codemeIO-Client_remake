@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom"; // Thêm import này
+import { useLocation } from "react-router-dom";
 import { Bell, CircleUserRound, Search, ShoppingCart } from "lucide-react";
 import ElectroLogo from "../../ElectroLogo/ElectroLogo";
 import CategoryMenu from "./CategoryMenu";
 
 const ClientHeader = () => {
-    const location = useLocation(); // Sử dụng useLocation để lấy thông tin địa chỉ
-    const isAdmin = location.pathname.includes("/admin"); // Kiểm tra xem đường dẫn có chứa /admin không
+    const location = useLocation();
+    const isAdmin = location.pathname.includes("/admin");
 
     const [isAccountDropdownOpen, setAccountDropdownOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [username, setUsername] = useState('');
+    const [userRoles, setUserRoles] = useState([]);
     const accountRef = useRef(null);
 
     useEffect(() => {
@@ -19,6 +20,7 @@ const ClientHeader = () => {
             const parsedUser = JSON.parse(user);
             setIsLoggedIn(true);
             setUsername(parsedUser.username);
+            setUserRoles(parsedUser.roles || []); // Lưu roles vào state
         }
     }, []);
 
@@ -50,6 +52,11 @@ const ClientHeader = () => {
         };
     }, [isAccountDropdownOpen]);
 
+    // Kiểm tra xem người dùng có vai trò Admin hoặc Instructor không
+    const hasAdminRole = userRoles.some(role =>
+        role.roleName === 'Admin' || role.roleName === 'Instructor'
+    );
+
     return (
         <header className="bg-white shadow-custom-1">
             <div className="mx-auto px-4 max-w-[1320px]">
@@ -57,7 +64,7 @@ const ClientHeader = () => {
                     <a href='/' className="flex items-center justify-center gap-2">
                         <ElectroLogo />
                     </a>
-                    {!isAdmin && ( // Chỉ hiển thị khi không ở chế độ admin
+                    {!isAdmin && (
                         <div className="relative max-w-[300px] hidden md:block">
                             <div className="relative max-w-[300px] group flex-1 md:max-w-[400px]">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9e9ea7] w-4 h-4 pointer-events-none transition-colors group-focus-within:text-[#0d0c22]" />
@@ -69,7 +76,7 @@ const ClientHeader = () => {
                             </div>
                         </div>
                     )}
-                    {!isAdmin && <CategoryMenu />} {/* Chỉ hiển thị khi không ở chế độ admin */}
+                    {!isAdmin && <CategoryMenu />}
                     <div className="hidden md:block">
                         <div className="flex flex-wrap items-center gap-2">
                             {isLoggedIn && (
@@ -110,6 +117,11 @@ const ClientHeader = () => {
 
                                 {isAccountDropdownOpen && (
                                     <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg py-2 z-10">
+                                        {isLoggedIn && hasAdminRole && ( // Hiển thị nút vào trang admin nếu có vai trò Admin hoặc Instructor
+                                            <a href="/admin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                Quản trị
+                                            </a>
+                                        )}
                                         {isLoggedIn ? (
                                             <>
                                                 <a href="/learningProfile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
