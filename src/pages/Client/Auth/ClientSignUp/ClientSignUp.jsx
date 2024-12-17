@@ -94,7 +94,19 @@ const ClientSignUp = () => {
             const response = await axios.post(`${BASE_URL_API}/register`, formData);
             showNotification('success', 'Đăng ký thành công', 'Tài khoản của bạn đã được tạo.');
             console.log('Đăng ký thành công', response.data);
-            localStorage.setItem('user', JSON.stringify(response.data));
+
+            // Lấy userId từ phản hồi, giả sử response.data có userId
+            const userId = response.data.userId;
+            const rolesResponse = await axios.get(`${BASE_URL_API}/userRoles/users/${userId}`);
+
+            // Tạo đối tượng user chứa cả thông tin người dùng và roles
+            const userData = {
+                ...response.data,
+                roles: rolesResponse.data
+            };
+
+            // Lưu vào localStorage
+            localStorage.setItem('user', JSON.stringify(userData));
 
             // Reset form sau khi đăng ký thành công
             setFormData(DEFAULT_FORM_DATA);
