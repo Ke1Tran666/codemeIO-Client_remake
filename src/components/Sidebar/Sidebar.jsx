@@ -31,6 +31,7 @@ function Sidebar() {
         { name: 'Overview', icon: LayoutDashboard, path: '/overview' },
         { name: 'Category', icon: FileText, path: '/category' },
         { name: 'Courses', icon: BookOpen, path: '/courses' },
+        { name: 'Lessons', icon: BookOpen, path: '/lessons' },
         {
             name: 'User',
             icon: Users,

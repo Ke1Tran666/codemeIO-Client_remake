@@ -30,16 +30,25 @@ const ClientSignIn = () => {
         try {
             const response = await axios.post(`${BASE_URL_API}/login`, formData);
             showNotification('success', 'Đăng nhập thành công', 'Tài khoản của bạn đã được đăng nhập.');
-            localStorage.setItem('user', JSON.stringify(response.data));
+
+            const userId = response.data.userId;
+            const rolesResponse = await axios.get(`${BASE_URL_API}/userRoles/users/${userId}`);
+
+            const userData = {
+                ...response.data,
+                roles: rolesResponse.data
+            };
+
+            localStorage.setItem('user', JSON.stringify(userData));
 
             setTimeout(() => {
                 navigate('/');
                 window.location.reload();
-                setIsSubmitting(false);
             }, 3000);
         } catch (error) {
             showNotification('error', 'Đăng nhập thất bại', 'Tên người dùng hoặc mật khẩu không chính xác.');
             console.error('Lỗi khi đăng nhập:', error);
+            setIsSubmitting(false); // Đặt lại trạng thái khi đăng nhập thất bại
         }
     };
 
@@ -56,15 +65,17 @@ const ClientSignIn = () => {
         try {
             await axios.post(`${BASE_URL_API}/forgot-password`, { email });
             showNotification('success', 'Email đã được gửi', 'Vui lòng kiểm tra email của bạn để đặt lại mật khẩu.');
-            setIsForgotPassword(false);
+            // Đặt lại trạng thái email và isSubmitting
+            setEmail('');
+            setIsSubmitting(false); // Đặt lại trạng thái nút
+            setIsForgotPassword(false); // Chuyển về màn hình đăng nhập nếu cần
         } catch (error) {
             const message = error.response && error.response.status === 404
                 ? 'Email không tồn tại'
                 : 'Đã có lỗi xảy ra. Vui lòng thử lại!';
             showNotification('error', message, 'Vui lòng nhập email đúng.');
             console.error('Lỗi khi gửi yêu cầu quên mật khẩu:', error);
-        } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false); // Đặt lại trạng thái nếu có lỗi
         }
     };
 
