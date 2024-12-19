@@ -20,6 +20,7 @@ import ClientCourses from "./pages/Client/Admin/ClientCourses/ClientCourses"
 import ClientRoles from "./pages/Client/Admin/ClientRoles/ClientRoles"
 import ClientUsers from "./pages/Client/Admin/ClientUsers/ClientUsers"
 import ClientLessons from "./pages/Client/Admin/ClientLessons/ClientLessons"
+import ClientUserRoles from "./pages/Client/Admin/ClientUsers/ClientUserRoles"
 
 const App = () => {
   return (
@@ -44,6 +45,7 @@ const App = () => {
             <Route path="/admin/courses" element={<ClientCourses />} />
             <Route path="/admin/lessons" element={<ClientLessons />} />
             <Route path="/admin/roles" element={<ClientRoles />} />
+            <Route path="/admin/roles/:roleName" element={<ClientUserRoles />} />
             <Route path="/admin/users" element={<ClientUsers />} />
           </Route>
         </Routes>

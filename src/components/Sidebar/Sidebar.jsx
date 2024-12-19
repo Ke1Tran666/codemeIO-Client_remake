@@ -42,7 +42,7 @@ function Sidebar() {
                     icon: UserCircle,
                     subItems: [
                         { name: 'All Roles', icon: List, path: '/roles' },
-                        ...roles.map(role => ({ name: role.roleName, path: `/roles/${role.roleId}`, isDot: true }))
+                        ...roles.map(role => ({ name: role.roleName, path: `/roles/${role.roleName}`, isDot: true }))
                     ]
                 },
             ],
