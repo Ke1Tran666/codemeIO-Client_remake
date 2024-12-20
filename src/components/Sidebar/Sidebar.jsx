@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, FileText, Users, UserCircle, ChevronDown, ChevronUp, List } from 'lucide-react';
 import { BASE_URL_API } from '../../api/config';
+import ElectroLogo from '../ElectroLogo/ElectroLogo';
 
 function Sidebar() {
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -91,9 +92,12 @@ function Sidebar() {
     );
 
     return (
-        <div className="w-64 bg-white text-black px-2">
-            <div className="p-4">
-                <h1 className="text-2xl font-bold">Course Admin</h1>
+        <div className="w-64 bg-white text-black px-2 border-r border-gray-200">
+            <div className="p-5">
+                <a href='/' className="flex items-center justify-center gap-2">
+                    <ElectroLogo />
+                </a>
+                {/* <h1 className="text-2xl font-bold">Course Admin</h1> */}
             </div>
             <nav className="flex flex-col gap-2">
                 {menuItems.map(item => renderMenuItem(item))}

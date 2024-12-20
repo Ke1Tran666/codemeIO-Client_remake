@@ -21,6 +21,7 @@ import ClientRoles from "./pages/Client/Admin/ClientRoles/ClientRoles"
 import ClientUsers from "./pages/Client/Admin/ClientUsers/ClientUsers"
 import ClientLessons from "./pages/Client/Admin/ClientLessons/ClientLessons"
 import ClientUserRoles from "./pages/Client/Admin/ClientUsers/ClientUserRoles"
+import NotFound from "./pages/Client/NotFound/NotFound"
 
 const App = () => {
   return (
@@ -37,6 +38,7 @@ const App = () => {
             <Route path="/learningProfile" element={<ClientLearningProfile />} />
             <Route path="/course/:courseId" element={<ClientProduct />} />
             <Route path="/course/:courseId/lessons" element={<ClientCourseInterface />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
           <Route path="/admin" element={<ClientAdmin />}>
             <Route index element={<Navigate replace to="/admin/overview" />} />
@@ -47,6 +49,7 @@ const App = () => {
             <Route path="/admin/roles" element={<ClientRoles />} />
             <Route path="/admin/roles/:roleName" element={<ClientUserRoles />} />
             <Route path="/admin/users" element={<ClientUsers />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       </NotificationProvider>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { Bell, CircleUserRound, Search, ShoppingCart } from "lucide-react";
+import { Bell, CircleUserRound, Search, ShoppingCart } from 'lucide-react';
 import ElectroLogo from "../../ElectroLogo/ElectroLogo";
 import CategoryMenu from "./CategoryMenu";
 
@@ -52,6 +52,17 @@ const ClientHeader = () => {
         };
     }, [isAccountDropdownOpen]);
 
+    const getUserHighestRole = () => {
+        if (userRoles.some(role => role.roleName === 'Admin')) {
+            return 'Admin';
+        } else if (userRoles.some(role => role.roleName === 'Instructor')) {
+            return 'Instructor';
+        }
+        return null;
+    };
+
+    const userHighestRole = getUserHighestRole();
+
     // Kiểm tra xem người dùng có vai trò Admin hoặc Instructor không
     const hasAdminRole = userRoles.some(role =>
         role.roleName === 'Admin' || role.roleName === 'Instructor'
@@ -61,9 +72,11 @@ const ClientHeader = () => {
         <header className="bg-white shadow-custom-1">
             <div className="mx-auto px-4 max-w-[1320px]">
                 <div className="flex flex-wrap items-center justify-between py-4">
-                    <a href='/' className="flex items-center justify-center gap-2">
-                        <ElectroLogo />
-                    </a>
+                    {!isAdmin && (
+                        <a href='/' className="flex items-center justify-center gap-2">
+                            <ElectroLogo />
+                        </a>
+                    )}
                     {!isAdmin && (
                         <div className="relative max-w-[300px] hidden md:block">
                             <div className="relative max-w-[300px] group flex-1 md:max-w-[400px]">
@@ -77,76 +90,81 @@ const ClientHeader = () => {
                         </div>
                     )}
                     {!isAdmin && <CategoryMenu />}
-                    <div className="hidden md:block">
-                        <div className="flex flex-wrap items-center gap-2">
-                            {isLoggedIn && (
-                                <div className="relative group">
-                                    <button
-                                        type="button"
-                                        className="download-button flex items-center gap-2 bg-[#f8f9fa] rounded-lg p-3 hover:shadow-[0_0.5em_1.5em_-0.5em_rgba(88,71,116,0.627)] active:shadow-[0_0.3em_1em_-0.5em_rgba(88,71,116,0.627)] relative overflow-hidden"
-                                    >
-                                        <ShoppingCart className="w-6 h-6" />
-                                    </button>
-                                    <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                        Giỏ hàng
-                                    </span>
-                                </div>
-                            )}
+                    <div className={`hidden md:flex items-center gap-2 ${isAdmin ? 'ml-auto mr-5' : ''}`}>
+                        {(isAdmin && userHighestRole) && (
+                            <span className={`text-sm font-medium mr-2 ${userHighestRole === 'Admin' ? 'text-red-600' : 'text-green-600'
+                                }`}>
+                                Bạn đang ở chế độ {userHighestRole}
+                            </span>
+                        )}
+                        {isLoggedIn && (
                             <div className="relative group">
                                 <button
                                     type="button"
                                     className="download-button flex items-center gap-2 bg-[#f8f9fa] rounded-lg p-3 hover:shadow-[0_0.5em_1.5em_-0.5em_rgba(88,71,116,0.627)] active:shadow-[0_0.3em_1em_-0.5em_rgba(88,71,116,0.627)] relative overflow-hidden"
                                 >
-                                    <Bell className="w-6 h-6" />
+                                    <ShoppingCart className="w-6 h-6" />
                                 </button>
                                 <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                    Thông báo
+                                    Giỏ hàng
                                 </span>
                             </div>
-                            <div className="relative group" ref={accountRef}>
-                                <button
-                                    type="button"
-                                    onClick={toggleAccountDropdown}
-                                    className="download-button flex items-center gap-2 bg-[#f8f9fa] rounded-lg p-3 hover:shadow-[0_0.5em_1.5em_-0.5em_rgba(88,71,116,0.627)] active:shadow-[0_0.3em_1em_-0.5em_rgba(88,71,116,0.627)] relative overflow-hidden"
-                                >
-                                    <CircleUserRound className="w-6 h-6" />
-                                </button>
-                                <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                    {isLoggedIn ? `Hello, ${username}` : 'Tài khoản'}
-                                </span>
+                        )}
+                        <div className="relative group">
+                            <button
+                                type="button"
+                                className="download-button flex items-center gap-2 bg-[#f8f9fa] rounded-lg p-3 hover:shadow-[0_0.5em_1.5em_-0.5em_rgba(88,71,116,0.627)] active:shadow-[0_0.3em_1em_-0.5em_rgba(88,71,116,0.627)] relative overflow-hidden"
+                            >
+                                <Bell className="w-6 h-6" />
+                            </button>
+                            <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                                Thông báo
+                            </span>
+                        </div>
+                        <div className="relative group" ref={accountRef}>
+                            <button
+                                type="button"
+                                onClick={toggleAccountDropdown}
+                                className="download-button flex items-center gap-2 bg-[#f8f9fa] rounded-lg p-3 hover:shadow-[0_0.5em_1.5em_-0.5em_rgba(88,71,116,0.627)] active:shadow-[0_0.3em_1em_-0.5em_rgba(88,71,116,0.627)] relative overflow-hidden"
+                            >
+                                <CircleUserRound className="w-6 h-6" />
+                            </button>
+                            <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                                {isLoggedIn ? `Hello, ${username}` : 'Tài khoản'}
+                            </span>
 
-                                {isAccountDropdownOpen && (
-                                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg py-2 z-10">
-                                        {isLoggedIn && hasAdminRole && ( // Hiển thị nút vào trang admin nếu có vai trò Admin hoặc Instructor
-                                            <a href="/admin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                Quản trị
+                            {isAccountDropdownOpen && (
+                                <div className="absolute top-full left-1/2
+                                 -translate-x-2/3 mt-2 w-40 bg-white border border-gray-300 rounded-lg shadow-lg py-2 z-10">
+                                    {isLoggedIn && hasAdminRole && ( // Hiển thị nút vào trang admin nếu có vai trò Admin hoặc Instructor
+                                        <a href="/admin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            Quản trị
+                                        </a>
+                                    )}
+                                    {isLoggedIn ? (
+                                        <>
+                                            <a href="/learningProfile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                Học tập
                                             </a>
-                                        )}
-                                        {isLoggedIn ? (
-                                            <>
-                                                <a href="/learningProfile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                    Học tập
-                                                </a>
-                                                <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                    Hồ sơ
-                                                </a>
-                                                <button onClick={handleLogout} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
-                                                    Đăng xuất
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <a href="/signin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                    Đăng nhập
-                                                </a>
-                                                <a href="/signup" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                    Đăng ký
-                                                </a>
-                                            </>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
+                                            <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                Hồ sơ
+                                            </a>
+                                            <button onClick={handleLogout} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
+                                                Đăng xuất
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <a href="/signin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                Đăng nhập
+                                            </a>
+                                            <a href="/signup" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                Đăng ký
+                                            </a>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
