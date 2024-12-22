@@ -22,3 +22,7 @@ npx tailwindcss -i src/assets/css/input.css -o src/assets/css/output.css --watch
 - react-router-dom
 - axios (call api)
 - prop-types (Destructuring)
+- @dnd-kit/core (kéo thả element)
+- gapi-script (call api for youtube)
+- react-chartjs-2 (Biểu đồ)
+- chart.js (Biểu đồ)
