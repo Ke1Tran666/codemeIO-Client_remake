@@ -6,18 +6,8 @@ import axios from 'axios';
 import { BASE_URL, BASE_URL_API } from '../../api/config';
 
 const CourseForm = ({ course, onClose, onSave, formAction }) => {
-    // const [newCourse, setNewCourse] = useState({
-    //     title: '',
-    //     description: '',
-    //     imageCourses: null,
-    //     price: 0,
-    //     rating: 0,
-    //     categoryId: 0,
-    //     instructorId: 0,
-    //     totalStudents: 0,
-    // });
     const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
+    const [content, setContent] = useState('');
     const [price, setPrice] = useState('0'); // Updated initial state for price
     const [rating, setRating] = useState('');
     const [imageCourses, setImageCourses] = useState('');
@@ -37,7 +27,7 @@ const CourseForm = ({ course, onClose, onSave, formAction }) => {
     useEffect(() => {
         if (course && formAction === 'edit') {
             setTitle(course.title);
-            setDescription(course.description);
+            setContent(course.content);
             setPrice(course.price);
             setRating(course.rating);
             setImageCourses(course.imageCourses || '');
@@ -70,7 +60,7 @@ const CourseForm = ({ course, onClose, onSave, formAction }) => {
 
         const courseData = {
             title,
-            description,
+            content,
             price: parseFloat(price) || 0, // Updated price handling
             rating: parseFloat(rating),
             categoryId: category ? category.categoryId : null,
@@ -195,15 +185,15 @@ const CourseForm = ({ course, onClose, onSave, formAction }) => {
                                 />
                             </div>
                             <div className="flex flex-col gap-2">
-                                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                                    Description
+                                <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+                                    Content
                                 </label>
                                 <textarea
-                                    id="description"
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
+                                    id="content"
+                                    value={content}
+                                    onChange={(e) => setContent(e.target.value)}
                                     className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Enter course description"
+                                    placeholder="Enter course content"
                                     rows={3}
                                 />
                             </div>
@@ -350,7 +340,7 @@ CourseForm.propTypes = {
     course: PropTypes.shape({
         courseId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
         title: PropTypes.string,
-        description: PropTypes.string,
+        content: PropTypes.string,
         price: PropTypes.number,
         rating: PropTypes.number,
         imageCourses: PropTypes.string,

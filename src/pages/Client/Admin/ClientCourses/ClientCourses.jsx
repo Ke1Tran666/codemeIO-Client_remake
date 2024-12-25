@@ -16,7 +16,7 @@ const ClientCourses = () => {
     const [currentCourse, setCurrentCourse] = useState({
         courseId: '',
         title: '',
-        description: '',
+        content: '',
         price: 0,
         rating: 0,
         ImageCourses: '',
@@ -31,7 +31,7 @@ const ClientCourses = () => {
     const [instructorUser, setInstructorUser] = useState({ userId: 0, fullname: `` });
     const [currentPage, setCurrentPage] = useState(1);
     const coursesPerPage = 8;
-    const headers = ['Course', 'Description', 'Price', 'Rating', 'Total Students', ''];
+    const headers = ['Course', 'Content', 'Price', 'Rating', 'Total Students', ''];
     const dropdownRef = useRef(null);
 
     useEffect(() => {
@@ -72,7 +72,7 @@ const ClientCourses = () => {
 
         const filtered = courses.filter(course =>
             course.title.toLowerCase().includes(term.toLowerCase()) ||
-            course.description.toLowerCase().includes(term.toLowerCase())
+            course.content.toLowerCase().includes(term.toLowerCase())
         );
         setFilteredCourses(filtered);
         setCurrentPage(1);
@@ -82,7 +82,7 @@ const ClientCourses = () => {
         setCurrentCourse({
             courseId: '',
             title: '',
-            description: '',
+            content: '',
             price: 0,
             rating: 0,
             ImageCourses: '',
@@ -148,7 +148,7 @@ const ClientCourses = () => {
                 showNotification('success', 'Success', 'Course has been updated.');
             }
 
-            setCurrentCourse({ courseId: '', title: '', description: '', price: 0, rating: 0, ImageCourses: null, totalStudents: 0 });
+            setCurrentCourse({ courseId: '', title: '', content: '', price: 0, rating: 0, ImageCourses: null, totalStudents: 0 });
             setShowForm(false);
         } catch (error) {
             console.error('Error:', error);
@@ -284,7 +284,7 @@ const ClientCourses = () => {
                                     </div>
                                 </td>
                                 <td className="py-2 px-4 border-b">
-                                    <div className="truncate max-w-xs">{course.description}</div>
+                                    <div className="truncate max-w-xs">{course.content}</div>
                                 </td>
                                 <td className="py-2 px-4 border-b">
                                     <div>${course.price.toFixed(2)}</div>
