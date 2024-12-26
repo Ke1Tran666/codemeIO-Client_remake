@@ -1,12 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Plus, MoreVertical, Edit, Trash, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Plus, MoreVertical, Edit, Trash, ChevronRight } from 'lucide-react';
 import axios from 'axios';
 import { BASE_URL_API } from '../../../../api/config';
 import { useNotification } from '../../../../components/Notification/NotificationContext';
 import Pagination from '../../../../components/Pagination/Pagination';
 import Count from '../../../../components/Count/Count';
 import InputSearch from '../../../../components/Search/Search';
-import TableHeader from '../../../../components/Table/TableHeader';
 import LessonForm from '../../../../components/Form/LessonForm';
 
 const ClientLessons = () => {
@@ -24,16 +23,18 @@ const ClientLessons = () => {
     const [courseLessons, setCourseLessons] = useState({});
     const [loadingLessons, setLoadingLessons] = useState(null);
     const coursesPerPage = 8;
-    const courseHeaders = ['Course', 'Lessons', ''];
-    const lessonHeaders = ['Lesson Title', 'Description', ''];
     const dropdownRef = useRef(null);
 
     useEffect(() => {
         const fetchCourses = async () => {
             try {
                 const response = await axios.get(`${BASE_URL_API}/courses`);
-                setCourses(response.data);
-                setFilteredCourses(response.data);
+                const coursesWithLessonCount = await Promise.all(response.data.map(async (course) => {
+                    const lessonResponse = await axios.get(`${BASE_URL_API}/lessons/course/${course.courseId}`);
+                    return { ...course, lessonCount: lessonResponse.data.length };
+                }));
+                setCourses(coursesWithLessonCount);
+                setFilteredCourses(coursesWithLessonCount);
             } catch (error) {
                 console.error('Error fetching courses:', error);
                 showNotification('error', 'Error loading data', 'Unable to fetch course information.');
@@ -84,6 +85,16 @@ const ClientLessons = () => {
                     ...prev,
                     [lessonData.courseId]: [...(prev[lessonData.courseId] || []), response.data]
                 }));
+                setCourses(prevCourses => prevCourses.map(course =>
+                    course.courseId === lessonData.courseId
+                        ? { ...course, lessonCount: course.lessonCount + 1 }
+                        : course
+                ));
+                setFilteredCourses(prevCourses => prevCourses.map(course =>
+                    course.courseId === lessonData.courseId
+                        ? { ...course, lessonCount: course.lessonCount + 1 }
+                        : course
+                ));
                 showNotification('success', 'Success', 'Lesson has been added.');
             } else if (formAction === 'edit') {
                 response = await axios.put(`${BASE_URL_API}/lessons/${lessonData.lessonId}`, lessonData, config);
@@ -111,6 +122,16 @@ const ClientLessons = () => {
                 ...prev,
                 [courseId]: prev[courseId].filter(lesson => lesson.lessonId !== lessonId)
             }));
+            setCourses(prevCourses => prevCourses.map(course =>
+                course.courseId === courseId
+                    ? { ...course, lessonCount: course.lessonCount - 1 }
+                    : course
+            ));
+            setFilteredCourses(prevCourses => prevCourses.map(course =>
+                course.courseId === courseId
+                    ? { ...course, lessonCount: course.lessonCount - 1 }
+                    : course
+            ));
             showNotification('success', 'Success', 'Lesson has been deleted.');
         } catch (error) {
             console.error('Error deleting lesson:', error);
@@ -204,7 +225,7 @@ const ClientLessons = () => {
 
     return (
         <div className="p-6 overflow-x-hidden">
-            <h2 className="text-2xl font-bold mb-4">Courses and Lessons</h2>
+            <h2 className="text-2xl font-bold mb-4">Lessons</h2>
 
             <div className="flex justify-between items-center mb-4">
                 <Count count={filteredCourses.length} title="Total Courses" />
@@ -227,40 +248,38 @@ const ClientLessons = () => {
             )}
 
             <div className="overflow-x-auto relative">
-                <table className="w-full">
-                    <TableHeader headers={courseHeaders} />
-                    <tbody>
+                <table className="w-full border-collapse">
+                    <thead>
+                        <tr className="bg-gray-50">
+                            <th className="text-left py-3 px-4 font-medium text-gray-500">Name</th>
+                            <th className="text-left py-3 px-4 font-medium text-gray-500">Total Lessons</th>
+                            <th className="text-right py-3 px-4 font-medium text-gray-500">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
                         {currentCourses.map(course => (
-                            <>
-                                <tr key={course.courseId} className="hover:bg-gray-50">
-                                    <td className="py-2 px-4 border-b">
+                            <React.Fragment key={course.courseId}>
+                                <tr className="hover:bg-gray-50">
+                                    <td className="py-3 px-4">
                                         <div className="flex items-center">
-                                            <div className="font-semibold">{course.title}</div>
+                                            <button
+                                                onClick={() => toggleCourseExpansion(course.courseId)}
+                                                className={`mr-2 transform transition-transform ${expandedCourse === course.courseId ? 'rotate-90' : ''
+                                                    }`}
+                                            >
+                                                <ChevronRight className="h-5 w-5 text-gray-400" />
+                                            </button>
+                                            <span className="font-medium text-gray-900">{course.title}</span>
                                         </div>
                                     </td>
-                                    <td className="py-2 px-4 border-b">
-                                        <button
-                                            onClick={() => toggleCourseExpansion(course.courseId)}
-                                            className="flex items-center text-blue-500 hover:text-blue-700"
-                                        >
-                                            {expandedCourse === course.courseId ? (
-                                                <>
-                                                    <ChevronUp className="h-4 w-4 mr-1" />
-                                                    Hide Lessons
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <ChevronDown className="h-4 w-4 mr-1" />
-                                                    Show Lessons
-                                                </>
-                                            )}
-                                        </button>
+                                    <td className="py-3 px-4 text-gray-500">
+                                        {course.lessonCount} lessons
                                     </td>
-                                    <td className="py-2 px-4 border-b">
+                                    <td className="py-3 px-4">
                                         <div className="flex justify-end">
                                             <button
                                                 onClick={() => handleAddLesson(course.courseId)}
-                                                className="p-1 bg-green-500 text-white rounded-full hover:bg-green-600"
+                                                className="p-1 text-gray-400 hover:text-gray-600"
                                                 title="Add Lesson"
                                             >
                                                 <Plus className="h-5 w-5" />
@@ -270,38 +289,48 @@ const ClientLessons = () => {
                                 </tr>
                                 {expandedCourse === course.courseId && (
                                     <tr>
-                                        <td colSpan="3" className="py-2 px-4 border-b">
+                                        <td colSpan="4" className="py-2 px-4 bg-gray-50">
                                             {loadingLessons === course.courseId ? (
                                                 <div className="text-center py-4">Loading lessons...</div>
                                             ) : courseLessons[course.courseId] ? (
-                                                <table className="w-full">
-                                                    <TableHeader headers={lessonHeaders} />
-                                                    <tbody>
-                                                        {courseLessons[course.courseId].map(lesson => (
-                                                            <tr key={lesson.lessonId} className="hover:bg-gray-100">
-                                                                <td className="py-2 px-4">{lesson.title}</td>
-                                                                <td className="py-2 px-4">{lesson.description}</td>
-                                                                <td className="py-2 px-4">
-                                                                    <div className="flex justify-end">
-                                                                        <button
-                                                                            onClick={(e) => handleMoreVerticalClick(e, lesson.lessonId)}
-                                                                            className="p-1 hover:bg-gray-200 rounded-full"
-                                                                        >
-                                                                            <MoreVertical className="h-5 w-5" />
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
+                                                <div className="ml-8">
+                                                    <table className="w-full">
+                                                        <tbody className="divide-y divide-gray-200">
+                                                            {courseLessons[course.courseId].map(lesson => (
+                                                                <tr key={lesson.lessonId} className="hover:bg-gray-100">
+                                                                    <td className="py-3 px-4 text-sm text-gray-900">
+                                                                        {lesson.title}
+                                                                    </td>
+                                                                    <td className="py-3 px-4 text-sm text-gray-500">
+                                                                        {lesson.description}
+                                                                    </td>
+                                                                    <td className="py-3 px-4 text-sm text-gray-500">
+                                                                        {lesson.linkVideo || 'N/A'}
+                                                                    </td>
+                                                                    <td className="py-3 px-4">
+                                                                        <div className="flex justify-end">
+                                                                            <button
+                                                                                onClick={(e) => handleMoreVerticalClick(e, lesson.lessonId)}
+                                                                                className="p-1 text-gray-400 hover:text-gray-600"
+                                                                            >
+                                                                                <MoreVertical className="h-5 w-5" />
+                                                                            </button>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             ) : (
-                                                <div className="text-center py-4">No lessons found for this course.</div>
+                                                <div className="text-center py-4 text-gray-500">
+                                                    No lessons found for this course.
+                                                </div>
                                             )}
                                         </td>
                                     </tr>
                                 )}
-                            </>
+                            </React.Fragment>
                         ))}
                     </tbody>
                 </table>
@@ -310,7 +339,7 @@ const ClientLessons = () => {
             {activeDropdown && (
                 <div
                     ref={dropdownRef}
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
+                    className="absolute bg-white rounded-lg shadow-lg z-10 border border-gray-200"
                     style={{
                         top: `${dropdownPosition.top}px`,
                         left: `${dropdownPosition.left}px`,
@@ -324,21 +353,23 @@ const ClientLessons = () => {
                                     option.action();
                                     setActiveDropdown(null);
                                 }}
-                                className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                             >
                                 {option.icon}
-                                {option.label}
+                                <span>{option.label}</span>
                             </button>
                         ))}
                     </div>
                 </div>
             )}
 
-            <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                setCurrentPage={setCurrentPage}
-            />
+            <div className="mt-4">
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    setCurrentPage={setCurrentPage}
+                />
+            </div>
         </div>
     );
 }
