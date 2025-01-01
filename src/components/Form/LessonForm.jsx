@@ -19,7 +19,8 @@ const LessonForm = ({ lesson, onClose, onSave, formAction, courses }) => {
     const [responseData, setResponseData] = useState(null);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [uploadId, setUploadId] = useState(null);
+    const [, setUploadId] = useState(null);
+    const [isFormLocked, setIsFormLocked] = useState(false);
 
     useEffect(() => {
         if (lesson) {
@@ -111,9 +112,12 @@ const LessonForm = ({ lesson, onClose, onSave, formAction, courses }) => {
                     clearInterval(pollInterval);
                     setResponseData(response.data);
                     setIsLoading(false);
+                    setIsFormLocked(true);
                     // Update lessonForm with the new video link
                     setLessonForm(prevForm => ({
                         ...prevForm,
+                        title: response.data.title,
+                        description: response.data.description,
                         linkVideo: response.data.videoId
                     }));
                 } else if (response.data.status === 'error') {
@@ -153,8 +157,9 @@ const LessonForm = ({ lesson, onClose, onSave, formAction, courses }) => {
                                     name="title"
                                     value={uploadForm.title}
                                     onChange={handleUploadChange}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
                                     required
+                                    disabled={isFormLocked}
                                 />
                             </div>
                             <div>
@@ -165,8 +170,9 @@ const LessonForm = ({ lesson, onClose, onSave, formAction, courses }) => {
                                     value={uploadForm.description}
                                     onChange={handleUploadChange}
                                     rows="4"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
                                     required
+                                    disabled={isFormLocked}
                                 ></textarea>
                             </div>
                             <div>
@@ -177,9 +183,9 @@ const LessonForm = ({ lesson, onClose, onSave, formAction, courses }) => {
                                             <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                         <div className="flex text-sm text-gray-600">
-                                            <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                            <label htmlFor="file-upload" className={`relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500 ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                                 <span>Upload a file</span>
-                                                <input id="file-upload" name="file" type="file" className="sr-only" onChange={handleUploadChange} accept="video/*" />
+                                                <input id="file-upload" name="file" type="file" className="sr-only" onChange={handleUploadChange} accept="video/*" disabled={isFormLocked} />
                                             </label>
                                             <p className="pl-1">or drag and drop</p>
                                         </div>
@@ -189,28 +195,28 @@ const LessonForm = ({ lesson, onClose, onSave, formAction, courses }) => {
                                     </div>
                                 </div>
                             </div>
-                            <div>
+                            <div className="flex items-center space-x-4">
                                 <button
                                     type="submit"
-                                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                    className="flex-shrink-0 w-1/2 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={isLoading || isFormLocked}
                                 >
                                     Upload Video
                                 </button>
+                                <div className="flex-grow">
+                                    {isLoading && (
+                                        <p className="text-sm text-gray-600">
+                                            Uploading video... Please complete the authorization in the new window.
+                                        </p>
+                                    )}
+                                    {responseData && responseData.videoId && (
+                                        <p className="text-sm text-green-600 font-semibold">
+                                            Upload Successful
+                                        </p>
+                                    )}
+                                </div>
                             </div>
                         </form>
-                        {isLoading && (
-                            <div className="mt-4 text-center">
-                                <p>Uploading video... Please complete the authorization in the new window.</p>
-                            </div>
-                        )}
-                        {responseData && responseData.videoId && (
-                            <div className="mt-4 p-4 bg-green-100 rounded-lg">
-                                <h3 className="text-lg font-semibold text-green-800 mb-2">Upload Successful</h3>
-                                <p><strong>Title:</strong> {responseData.title}</p>
-                                <p><strong>Description:</strong> {responseData.description}</p>
-                                <p><strong>Video ID:</strong> {responseData.videoId}</p>
-                            </div>
-                        )}
                     </div>
                     {/* LessonForm */}
                     <div className="w-1/2 p-6">
