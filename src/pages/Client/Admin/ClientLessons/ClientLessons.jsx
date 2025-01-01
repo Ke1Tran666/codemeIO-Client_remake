@@ -71,6 +71,7 @@ const ClientLessons = () => {
     };
 
     const handleSubmitLesson = async (lessonData) => {
+        console.log('lessonData:', lessonData);
         try {
             let response;
             const config = {
@@ -244,6 +245,7 @@ const ClientLessons = () => {
                     onClose={() => setShowForm(false)}
                     onSave={handleSubmitLesson}
                     formAction={formAction}
+                    courses={courses}
                 />
             )}
 
