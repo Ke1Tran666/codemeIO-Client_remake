@@ -71,7 +71,12 @@ const ClientLessons = () => {
     };
 
     const handleSubmitLesson = async (lessonData) => {
-        console.log('lessonData:', lessonData);
+        // Chuyển đổi courseId thành số nếu cần
+        const courseId = Number(lessonData.courseId);
+        const updatedLessonData = { ...lessonData, courseId }; // Đảm bảo courseId là số
+
+        console.log('Received lesson data:', updatedLessonData); // In ra dữ liệu nhận được
+
         try {
             let response;
             const config = {
@@ -81,27 +86,27 @@ const ClientLessons = () => {
             };
 
             if (formAction === 'add') {
-                response = await axios.post(`${BASE_URL_API}/lessons`, lessonData, config);
+                response = await axios.post(`${BASE_URL_API}/lessons`, updatedLessonData, config);
                 setCourseLessons(prev => ({
                     ...prev,
-                    [lessonData.courseId]: [...(prev[lessonData.courseId] || []), response.data]
+                    [courseId]: [...(prev[courseId] || []), response.data]
                 }));
                 setCourses(prevCourses => prevCourses.map(course =>
-                    course.courseId === lessonData.courseId
+                    course.courseId === courseId
                         ? { ...course, lessonCount: course.lessonCount + 1 }
                         : course
                 ));
                 setFilteredCourses(prevCourses => prevCourses.map(course =>
-                    course.courseId === lessonData.courseId
+                    course.courseId === courseId
                         ? { ...course, lessonCount: course.lessonCount + 1 }
                         : course
                 ));
                 showNotification('success', 'Success', 'Lesson has been added.');
             } else if (formAction === 'edit') {
-                response = await axios.put(`${BASE_URL_API}/lessons/${lessonData.lessonId}`, lessonData, config);
+                response = await axios.put(`${BASE_URL_API}/lessons/${updatedLessonData.lessonId}`, updatedLessonData, config);
                 setCourseLessons(prev => ({
                     ...prev,
-                    [lessonData.courseId]: prev[lessonData.courseId].map(lesson =>
+                    [courseId]: prev[courseId].map(lesson =>
                         lesson.lessonId === response.data.lessonId ? response.data : lesson
                     )
                 }));
