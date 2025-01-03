@@ -16,7 +16,7 @@ const ClientProduct = () => {
     }
 
     return (
-        <main className="container mx-auto">
+        <main className="container mx-auto mt-[74px]">
             <div className="max-w-[1320px] w-full mx-auto px-4">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">

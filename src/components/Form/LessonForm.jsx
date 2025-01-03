@@ -47,7 +47,7 @@ const LessonForm = ({ lesson, onClose, onSave, formAction, courses }) => {
         const { name, value } = e.target;
         setLessonForm(prevForm => ({
             ...prevForm,
-            [name]: value || ''
+            [name]: name === 'courseId' ? parseInt(value, 10) : value
         }));
     };
 
@@ -69,8 +69,11 @@ const LessonForm = ({ lesson, onClose, onSave, formAction, courses }) => {
 
     const handleLessonSubmit = (e) => {
         e.preventDefault();
-        console.log('Lesson data submitted:', lessonForm); // In ra dữ liệu
-        onSave(lessonForm);
+        console.log('Lesson data submitted:', lessonForm);
+        onSave({
+            ...lessonForm,
+            courseId: parseInt(lessonForm.courseId, 10)
+        });
     };
 
     const handleUploadSubmit = (e) => {

@@ -59,23 +59,22 @@ const ClientLessons = () => {
     };
 
     const handleAddLesson = (courseId) => {
-        setCurrentLesson({ courseId });
+        setCurrentLesson({ courseId: parseInt(courseId, 10) });
         setShowForm(true);
         setFormAction('add');
     };
 
     const handleEditLesson = (lesson) => {
-        setCurrentLesson(lesson);
+        setCurrentLesson({
+            ...lesson,
+            courseId: parseInt(lesson.courseId, 10)
+        });
         setShowForm(true);
         setFormAction('edit');
     };
 
     const handleSubmitLesson = async (lessonData) => {
-        // Chuyển đổi courseId thành số nếu cần
-        const courseId = Number(lessonData.courseId);
-        const updatedLessonData = { ...lessonData, courseId }; // Đảm bảo courseId là số
-
-        console.log('Received lesson data:', updatedLessonData); // In ra dữ liệu nhận được
+        console.log('Received lesson data:', lessonData); // Log the received data
 
         try {
             let response;
@@ -85,28 +84,42 @@ const ClientLessons = () => {
                 },
             };
 
+            const courseId = parseInt(lessonData.courseId, 10);
+            const course = courses.find(c => c.courseId === courseId);
+
+            if (!course) {
+                throw new Error('Course not found');
+            }
+
+            // Add the entire course object to lessonData
+            const updatedLessonData = {
+                ...lessonData,
+                course: course
+            };
+
             if (formAction === 'add') {
                 response = await axios.post(`${BASE_URL_API}/lessons`, updatedLessonData, config);
+                console.log(response.data); // Log the response data
                 setCourseLessons(prev => ({
                     ...prev,
-                    [courseId]: [...(prev[courseId] || []), response.data]
+                    [lessonData.courseId]: [...(prev[lessonData.courseId] || []), response.data]
                 }));
                 setCourses(prevCourses => prevCourses.map(course =>
-                    course.courseId === courseId
-                        ? { ...course, lessonCount: course.lessonCount + 1 }
+                    course.courseId === lessonData.courseId
+                        ? { ...course, lessonCount: (course.lessonCount || 0) + 1 }
                         : course
                 ));
                 setFilteredCourses(prevCourses => prevCourses.map(course =>
-                    course.courseId === courseId
-                        ? { ...course, lessonCount: course.lessonCount + 1 }
+                    course.courseId === lessonData.courseId
+                        ? { ...course, lessonCount: (course.lessonCount || 0) + 1 }
                         : course
                 ));
                 showNotification('success', 'Success', 'Lesson has been added.');
             } else if (formAction === 'edit') {
-                response = await axios.put(`${BASE_URL_API}/lessons/${updatedLessonData.lessonId}`, updatedLessonData, config);
+                response = await axios.put(`${BASE_URL_API}/lessons/${lessonData.lessonId}`, lessonData, config);
                 setCourseLessons(prev => ({
                     ...prev,
-                    [courseId]: prev[courseId].map(lesson =>
+                    [lessonData.courseId]: prev[lessonData.courseId].map(lesson =>
                         lesson.lessonId === response.data.lessonId ? response.data : lesson
                     )
                 }));
