@@ -29,7 +29,8 @@ const LessonForm = ({ lesson, onClose, onSave, formAction, courses }) => {
                     title: lesson.title || '',
                     description: lesson.description || '',
                     linkVideo: lesson.linkVideo || '',
-                    courseId: lesson.course?.courseId || 0
+                    courseId: lesson.course?.courseId || 0,
+                    lessonId: lesson.lessonId || 0
                 });
             } else if (formAction === 'add') {
                 const course = courses.find(course => course.courseId === lesson.courseId);
@@ -69,7 +70,7 @@ const LessonForm = ({ lesson, onClose, onSave, formAction, courses }) => {
 
     const handleLessonSubmit = (e) => {
         e.preventDefault();
-        console.log('Lesson data submitted:', lessonForm);
+        // console.log('Lesson data submitted:', lessonForm);
         onSave({
             ...lessonForm,
             courseId: parseInt(lessonForm.courseId, 10)
@@ -139,7 +140,7 @@ const LessonForm = ({ lesson, onClose, onSave, formAction, courses }) => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 overflow-y-auto">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl m-4">
+            <div className={`bg-white rounded-lg shadow-xl w-full ${formAction === 'edit' ? 'max-w-2xl' : 'max-w-6xl'} m-4`}>
                 <div className="flex justify-between items-center p-6 border-b">
                     <h2 className="text-xl font-semibold text-gray-900">
                         {formAction === 'add' ? 'Add New Lesson' : 'Edit Lesson'}
@@ -148,89 +149,91 @@ const LessonForm = ({ lesson, onClose, onSave, formAction, courses }) => {
                         <X className="h-6 w-6" />
                     </button>
                 </div>
-                <div className="flex">
+                <div className={`flex ${formAction === 'edit' ? 'justify-center' : ''}`}>
                     {/* UploadForm */}
-                    <div className="w-1/2 p-6 border-r">
-                        <h3 className="text-lg font-semibold mb-4">Upload Video</h3>
-                        <form onSubmit={handleUploadSubmit} className="space-y-4">
-                            <div>
-                                <label htmlFor="uploadTitle" className="block text-sm font-medium text-gray-700">Title</label>
-                                <input
-                                    type="text"
-                                    id="uploadTitle"
-                                    name="title"
-                                    value={uploadForm.title}
-                                    onChange={handleUploadChange}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
-                                    required
-                                    disabled={isFormLocked}
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="uploadDescription" className="block text-sm font-medium text-gray-700">Description</label>
-                                <textarea
-                                    id="uploadDescription"
-                                    name="description"
-                                    value={uploadForm.description}
-                                    onChange={handleUploadChange}
-                                    rows="4"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
-                                    required
-                                    disabled={isFormLocked}
-                                ></textarea>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Video File</label>
-                                <label className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-gray-400 transition-colors ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    {formAction !== 'edit' && (
+                        <div className="w-1/2 p-6 border-r">
+                            <h3 className="text-lg font-semibold mb-4">Upload Video</h3>
+                            <form onSubmit={handleUploadSubmit} className="space-y-4">
+                                <div>
+                                    <label htmlFor="uploadTitle" className="block text-sm font-medium text-gray-700">Title</label>
                                     <input
-                                        type="file"
-                                        name="file"
+                                        type="text"
+                                        id="uploadTitle"
+                                        name="title"
+                                        value={uploadForm.title}
                                         onChange={handleUploadChange}
-                                        accept="video/*"
-                                        className="sr-only"
+                                        className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+                                        required
                                         disabled={isFormLocked}
                                     />
-                                    <div className="space-y-1 text-center">
-                                        <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                        <div className="flex text-sm text-gray-600 justify-center">
-                                            <span className="relative bg-white font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                                                Upload a file
-                                            </span>
-                                            <p className="pl-1">or drag and drop</p>
-                                        </div>
-                                        <p className="text-xs text-gray-500">
-                                            {fileName || "MP4, WebM, or Ogg up to 5GB"}
-                                        </p>
-                                    </div>
-                                </label>
-                            </div>
-                            <div className="flex items-center space-x-4">
-                                <button
-                                    type="submit"
-                                    className="flex-shrink-0 w-1/2 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled={isLoading || isFormLocked}
-                                >
-                                    Upload Video
-                                </button>
-                                <div className="flex-grow">
-                                    {isLoading && (
-                                        <p className="text-sm text-gray-600">
-                                            Uploading video... Please complete the authorization in the new window.
-                                        </p>
-                                    )}
-                                    {responseData && responseData.videoId && (
-                                        <p className="text-sm text-green-600 font-semibold">
-                                            Upload Successful
-                                        </p>
-                                    )}
                                 </div>
-                            </div>
-                        </form>
-                    </div>
+                                <div>
+                                    <label htmlFor="uploadDescription" className="block text-sm font-medium text-gray-700">Description</label>
+                                    <textarea
+                                        id="uploadDescription"
+                                        name="description"
+                                        value={uploadForm.description}
+                                        onChange={handleUploadChange}
+                                        rows="4"
+                                        className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+                                        required
+                                        disabled={isFormLocked}
+                                    ></textarea>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Video File</label>
+                                    <label className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-gray-400 transition-colors ${isFormLocked ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                        <input
+                                            type="file"
+                                            name="file"
+                                            onChange={handleUploadChange}
+                                            accept="video/*"
+                                            className="sr-only"
+                                            disabled={isFormLocked}
+                                        />
+                                        <div className="space-y-1 text-center">
+                                            <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                            <div className="flex text-sm text-gray-600 justify-center">
+                                                <span className="relative bg-white font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                                    Upload a file
+                                                </span>
+                                                <p className="pl-1">or drag and drop</p>
+                                            </div>
+                                            <p className="text-xs text-gray-500">
+                                                {fileName || "MP4, WebM, or Ogg up to 5GB"}
+                                            </p>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div className="flex items-center space-x-4">
+                                    <button
+                                        type="submit"
+                                        className="flex-shrink-0 w-1/2 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={isLoading || isFormLocked}
+                                    >
+                                        Upload Video
+                                    </button>
+                                    <div className="flex-grow">
+                                        {isLoading && (
+                                            <p className="text-sm text-gray-600">
+                                                Uploading video... Please complete the authorization in the new window.
+                                            </p>
+                                        )}
+                                        {responseData && responseData.videoId && (
+                                            <p className="text-sm text-green-600 font-semibold">
+                                                Upload Successful
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    )}
                     {/* LessonForm */}
-                    <div className="w-1/2 p-6">
+                    <div className={`${formAction === 'edit' ? 'w-full' : 'w-1/2'} p-6`}>
                         <h3 className="text-lg font-semibold mb-4">Lesson Details</h3>
                         <form onSubmit={handleLessonSubmit} className="space-y-4">
                             <div>

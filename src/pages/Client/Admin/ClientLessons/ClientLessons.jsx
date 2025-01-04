@@ -60,8 +60,8 @@ const ClientLessons = () => {
 
     const handleAddLesson = (courseId) => {
         setCurrentLesson({ courseId: parseInt(courseId, 10) });
-        setShowForm(true);
         setFormAction('add');
+        setShowForm(true);
     };
 
     const handleEditLesson = (lesson) => {
@@ -69,12 +69,12 @@ const ClientLessons = () => {
             ...lesson,
             courseId: parseInt(lesson.courseId, 10)
         });
-        setShowForm(true);
         setFormAction('edit');
+        setShowForm(true);
     };
 
     const handleSubmitLesson = async (lessonData) => {
-        console.log('Received lesson data:', lessonData); // Log the received data
+        // console.log('Received lesson data:', lessonData);
 
         try {
             let response;
@@ -91,7 +91,6 @@ const ClientLessons = () => {
                 throw new Error('Course not found');
             }
 
-            // Add the entire course object to lessonData
             const updatedLessonData = {
                 ...lessonData,
                 course: course
@@ -99,7 +98,6 @@ const ClientLessons = () => {
 
             if (formAction === 'add') {
                 response = await axios.post(`${BASE_URL_API}/lessons`, updatedLessonData, config);
-                console.log(response.data); // Log the response data
                 setCourseLessons(prev => ({
                     ...prev,
                     [lessonData.courseId]: [...(prev[lessonData.courseId] || []), response.data]
@@ -116,7 +114,7 @@ const ClientLessons = () => {
                 ));
                 showNotification('success', 'Success', 'Lesson has been added.');
             } else if (formAction === 'edit') {
-                response = await axios.put(`${BASE_URL_API}/lessons/${lessonData.lessonId}`, lessonData, config);
+                response = await axios.put(`${BASE_URL_API}/lessons/${lessonData.lessonId}`, updatedLessonData, config);
                 setCourseLessons(prev => ({
                     ...prev,
                     [lessonData.courseId]: prev[lessonData.courseId].map(lesson =>
@@ -137,24 +135,40 @@ const ClientLessons = () => {
     const handleDeleteLesson = async (lessonId, courseId) => {
         try {
             await axios.delete(`${BASE_URL_API}/lessons/${lessonId}`);
-            setCourseLessons(prev => ({
-                ...prev,
-                [courseId]: prev[courseId].filter(lesson => lesson.lessonId !== lessonId)
-            }));
+
+            setCourseLessons(prevLessons => {
+                const updatedLessons = { ...prevLessons };
+                const courseIds = Object.keys(updatedLessons);
+
+                for (let id of courseIds) {
+                    updatedLessons[id] = updatedLessons[id].filter(
+                        lesson => lesson.lessonId !== lessonId
+                    );
+                    if (updatedLessons[id].length === 0) {
+                        delete updatedLessons[id];
+                    }
+                }
+
+                // console.log('Updated courseLessons:', updatedLessons);
+                return updatedLessons;
+            });
+
             setCourses(prevCourses => prevCourses.map(course =>
                 course.courseId === courseId
-                    ? { ...course, lessonCount: course.lessonCount - 1 }
+                    ? { ...course, lessonCount: Math.max((course.lessonCount || 1) - 1, 0) }
                     : course
             ));
+
             setFilteredCourses(prevCourses => prevCourses.map(course =>
                 course.courseId === courseId
-                    ? { ...course, lessonCount: course.lessonCount - 1 }
+                    ? { ...course, lessonCount: Math.max((course.lessonCount || 1) - 1, 0) }
                     : course
             ));
+
             showNotification('success', 'Success', 'Lesson has been deleted.');
         } catch (error) {
             console.error('Error deleting lesson:', error);
-            showNotification('error', 'Error deleting lesson', 'Unable to delete the lesson.');
+            showNotification('error', 'Error', 'Unable to delete the lesson. Please try again later.');
         }
     };
 
@@ -283,7 +297,10 @@ const ClientLessons = () => {
                                     <td className="py-3 px-4">
                                         <div className="flex items-center">
                                             <button
-                                                onClick={() => toggleCourseExpansion(course.courseId)}
+                                                onClick={() => {
+                                                    console.log('Course ID:', course.courseId);
+                                                    toggleCourseExpansion(course.courseId)
+                                                }}
                                                 className={`mr-2 transform transition-transform ${expandedCourse === course.courseId ? 'rotate-90' : ''
                                                     }`}
                                             >

@@ -4,7 +4,7 @@ import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import cors from "cors";
 import multer from "multer";
-import credentials from "../../credentials/credentials2.json" assert { type: "json" };
+import credentials from "../../credentials/credentials.json" assert { type: "json" };
 
 const app = express();
 app.use(express.json());
