@@ -103,7 +103,6 @@ const ClientHomeLastProduct = () => {
         try {
             const response = await axios.get(`${BASE_URL_API}/enrollments/student/${userId}/courses`);
             setCurrentlyLearning(response.data);
-            console.log(response.data);
         } catch (error) {
             console.error('Error fetching currently learning courses:', error);
         }

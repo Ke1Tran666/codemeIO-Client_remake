@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Bell, CircleUserRound, Search, ShoppingCart } from 'lucide-react';
 import ElectroLogo from "../../ElectroLogo/ElectroLogo";
 import CategoryMenu from "./CategoryMenu";
@@ -99,12 +99,12 @@ const ClientHeader = () => {
                         )}
                         {isLoggedIn && (
                             <div className="relative group">
-                                <button
-                                    type="button"
+                                <Link
+                                    to="/shopping"
                                     className="download-button flex items-center gap-2 bg-[#f8f9fa] rounded-lg p-3 hover:shadow-[0_0.5em_1.5em_-0.5em_rgba(88,71,116,0.627)] active:shadow-[0_0.3em_1em_-0.5em_rgba(88,71,116,0.627)] relative overflow-hidden"
                                 >
                                     <ShoppingCart className="w-6 h-6" />
-                                </button>
+                                </Link>
                                 <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                                     Giỏ hàng
                                 </span>

@@ -22,6 +22,7 @@ import ClientUsers from "./pages/Client/Admin/ClientUsers/ClientUsers"
 import ClientLessons from "./pages/Client/Admin/ClientLessons/ClientLessons"
 import ClientUserRoles from "./pages/Client/Admin/ClientUsers/ClientUserRoles"
 import NotFound from "./pages/Client/NotFound/NotFound"
+import ClientShopping from "./pages/Client/ClientShopping/ClientShopping"
 
 const App = () => {
   return (
@@ -33,6 +34,7 @@ const App = () => {
             <Route index element={<ClientHome />} />
             <Route path="/signup" element={<ClientSignUp />} />
             <Route path="/signin" element={<ClientSignIn />} />
+            <Route path="/shopping" element={<ClientShopping />} />
             <Route path="/reset-password" element={<ClientResetPassword />} />
             <Route path="/profile" element={<ClientUserProfile />} />
             <Route path="/learningProfile" element={<ClientLearningProfile />} />
