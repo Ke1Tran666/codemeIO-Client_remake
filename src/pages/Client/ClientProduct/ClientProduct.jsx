@@ -1,15 +1,35 @@
 import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
-import { Star, Check, Award, Clock, BarChart } from 'lucide-react';
+import { Star, Check } from 'lucide-react';
+import { useNotification } from '../../../components/Notification/NotificationContext';
 
 const ClientProduct = () => {
     const location = useLocation();
     const { course } = location.state || {}; // Nhận dữ liệu khóa học
+    const { showNotification } = useNotification();
 
     // Cuộn lên đầu trang khi component được tải
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
+
+    const handlePurchase = () => {
+        // Lấy khóa học đã lưu trong localStorage
+        const existingCourses = JSON.parse(localStorage.getItem('course')) || [];
+
+        // Kiểm tra xem khóa học đã tồn tại chưa
+        const courseExists = existingCourses.some(item => item.courseId === course.courseId);
+
+        if (!courseExists) {
+            // Thêm khóa học mới vào mảng
+            existingCourses.push(course);
+            // Lưu lại mảng mới vào localStorage
+            localStorage.setItem('course', JSON.stringify(existingCourses));
+            showNotification('success', 'Success', 'Khóa học đã được lưu vào giỏ hàng!');
+        } else {
+            showNotification('error', 'Error', 'Khóa học này đã có trong giỏ hàng!');
+        }
+    };
 
     if (!course) {
         return <div className="text-center">Khóa học không tồn tại.</div>;
@@ -59,22 +79,11 @@ const ClientProduct = () => {
                             <div className="mb-4">
                                 <span className="text-3xl font-bold">${course.price.toFixed(2)}</span>
                             </div>
-                            <button className="w-full mb-4 bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded">Mua ngay</button>
+                            <button
+                                className="w-full mb-4 bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded"
+                                onClick={handlePurchase}
+                            >Mua ngay</button>
                             <p className="text-center text-sm mb-4">Chính sách hoàn tiền trong 30 ngày</p>
-                            <div className="space-y-2">
-                                <div className="flex items-center">
-                                    <Clock className="w-5 h-5 mr-2" />
-                                    <span>47 giờ video theo yêu cầu</span>
-                                </div>
-                                <div className="flex items-center">
-                                    <BarChart className="w-5 h-5 mr-2" />
-                                    <span>69 bài tập lập trình</span>
-                                </div>
-                                <div className="flex items-center">
-                                    <Award className="w-5 h-5 mr-2" />
-                                    <span>Chứng chỉ hoàn thành</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

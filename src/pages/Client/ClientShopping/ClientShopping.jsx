@@ -1,28 +1,39 @@
 import { useState, useEffect } from 'react';
 import { Trash2, Star, Search } from 'lucide-react';
 
-const initialItems = [
-    { id: 1, title: "Complete React Developer in 2023", instructor: "Andrei Neagoie", price: 84.99, rating: 4.7, totalRatings: 49283 },
-    { id: 2, title: "Modern JavaScript From The Beginning", instructor: "Brad Traversy", price: 94.99, rating: 4.8, totalRatings: 32155 },
-    { id: 3, title: "The Complete 2023 Web Development Bootcamp", instructor: "Dr. Angela Yu", price: 84.99, rating: 4.9, totalRatings: 78234 },
-    { id: 4, title: "Complete React Developer in 2023", instructor: "Andrei Neagoie", price: 84.99, rating: 4.7, totalRatings: 49283 },
-    { id: 5, title: "Modern JavaScript From The Beginning", instructor: "Brad Traversy", price: 94.99, rating: 4.8, totalRatings: 32155 },
-    { id: 6, title: "The Complete 2023 Web Development Bootcamp", instructor: "Dr. Angela Yu", price: 84.99, rating: 4.9, totalRatings: 78234 },
-];
-
 const ClientShopping = () => {
-    const [cartItems, setCartItems] = useState(initialItems);
-    const [selectedItems, setSelectedItems] = useState(new Set(initialItems.map(item => item.id)));
+    const [cartItems, setCartItems] = useState([]);
+    const [selectedItems, setSelectedItems] = useState(new Set());
     const [searchTerm, setSearchTerm] = useState('');
-    const [filteredCourses, setFilteredCourses] = useState(cartItems);
+    const [filteredCourses, setFilteredCourses] = useState([]);
+
+    useEffect(() => {
+        // Lấy dữ liệu từ localStorage
+        const storedCourses = JSON.parse(localStorage.getItem('course')) || [];
+        setCartItems(storedCourses);
+        setFilteredCourses(storedCourses);
+        setSelectedItems(new Set(storedCourses.map(item => item.courseId)));
+    }, []);
 
     const removeItem = (id) => {
-        setCartItems(cartItems.filter(item => item.id !== id));
+        // Cập nhật cartItems
+        const updatedCartItems = cartItems.filter(item => item.courseId !== id);
+        setCartItems(updatedCartItems);
+
+        // Cập nhật selectedItems
         setSelectedItems(prev => {
             const newSet = new Set(prev);
             newSet.delete(id);
             return newSet;
         });
+
+        // Lưu lại vào localStorage
+        if (updatedCartItems.length > 0) {
+            localStorage.setItem('course', JSON.stringify(updatedCartItems));
+        } else {
+            // Xóa khóa 'course' khỏi localStorage nếu không còn khóa học nào
+            localStorage.removeItem('course');
+        }
     };
 
     const toggleItemSelection = (id) => {
@@ -41,7 +52,7 @@ const ClientShopping = () => {
         if (selectedItems.size === filteredCourses.length) {
             setSelectedItems(new Set());
         } else {
-            setSelectedItems(new Set(filteredCourses.map(item => item.id)));
+            setSelectedItems(new Set(filteredCourses.map(item => item.courseId)));
         }
     };
 
@@ -53,11 +64,11 @@ const ClientShopping = () => {
         } else {
             filtered = cartItems.filter(course =>
                 course.title.toLowerCase().includes(term.toLowerCase()) ||
-                course.instructor.toLowerCase().includes(term.toLowerCase())
+                course.instructor.username.toLowerCase().includes(term.toLowerCase())
             );
         }
         setFilteredCourses(filtered);
-        setSelectedItems(new Set(filtered.map(item => item.id)));
+        setSelectedItems(new Set(filtered.map(item => item.courseId)));
     };
 
     useEffect(() => {
@@ -65,7 +76,7 @@ const ClientShopping = () => {
     }, [cartItems]);
 
     const subtotal = filteredCourses
-        .filter(item => selectedItems.has(item.id))
+        .filter(item => selectedItems.has(item.courseId))
         .reduce((sum, item) => sum + item.price, 0);
 
     return (
@@ -87,21 +98,21 @@ const ClientShopping = () => {
                             </label>
                         </div>
                         {filteredCourses.map(item => (
-                            <div key={item.id} className="flex flex-col sm:flex-row border-b border-gray-200 py-4">
+                            <div key={item.courseId} className="flex flex-col sm:flex-row border-b border-gray-200 py-4">
                                 <div className="sm:w-1/12 flex items-center justify-center mb-4 sm:mb-0">
                                     <input
                                         type="checkbox"
                                         className="form-checkbox h-5 w-5 text-blue-600"
-                                        checked={selectedItems.has(item.id)}
-                                        onChange={() => toggleItemSelection(item.id)}
+                                        checked={selectedItems.has(item.courseId)}
+                                        onChange={() => toggleItemSelection(item.courseId)}
                                     />
                                 </div>
                                 <div className="sm:w-1/4 mb-4 sm:mb-0">
-                                    <img src={`https://via.placeholder.com/240x135?text=Course+${item.id}`} alt={item.title} className="w-full rounded-lg" />
+                                    <img src={item.imageCourses || `https://via.placeholder.com/240x135?text=Course+${item.courseId}`} alt={item.title} className="w-full rounded-lg" />
                                 </div>
                                 <div className="sm:w-8/12 sm:pl-4">
                                     <h3 className="text-lg font-semibold">{item.title}</h3>
-                                    <p className="text-sm text-gray-600 mb-2">By {item.instructor}</p>
+                                    <p className="text-sm text-gray-600 mb-2">By {item.instructor.username}</p>
                                     <div className="flex items-center mb-2">
                                         <span className="text-yellow-500 mr-1">{item.rating.toFixed(1)}</span>
                                         <div className="flex">
@@ -109,10 +120,9 @@ const ClientShopping = () => {
                                                 <Star key={i} className={`w-4 h-4 ${i < Math.floor(item.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`} />
                                             ))}
                                         </div>
-                                        <span className="text-xs text-gray-500 ml-1">({item.totalRatings.toLocaleString()})</span>
                                     </div>
                                     <div className="flex justify-between items-center mt-2">
-                                        <button onClick={() => removeItem(item.id)} className="text-sm text-red-600 hover:text-red-800 flex items-center">
+                                        <button onClick={() => removeItem(item.courseId)} className="text-sm text-red-600 hover:text-red-800 flex items-center">
                                             <Trash2 className="w-4 h-4 mr-1" />
                                             Remove
                                         </button>
@@ -149,7 +159,7 @@ const ClientShopping = () => {
                                 <span>${subtotal.toFixed(2)}</span>
                             </div>
                             <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300">
-                                Checkout
+                                Thanh toán
                             </button>
                             <p className="text-xs text-center mt-4 text-gray-500">
                                 30-Day Money-Back Guarantee

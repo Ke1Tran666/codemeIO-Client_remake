@@ -12,6 +12,7 @@ const ClientHeader = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [username, setUsername] = useState('');
     const [userRoles, setUserRoles] = useState([]);
+    const [hasCoursesInCart, setHasCoursesInCart] = useState(false); // Thêm state để kiểm tra có khóa học hay không
     const accountRef = useRef(null);
 
     useEffect(() => {
@@ -20,8 +21,24 @@ const ClientHeader = () => {
             const parsedUser = JSON.parse(user);
             setIsLoggedIn(true);
             setUsername(parsedUser.username);
-            setUserRoles(parsedUser.roles || []); // Lưu roles vào state
+            setUserRoles(parsedUser.roles || []);
         }
+
+        // Kiểm tra xem có khóa học nào trong localStorage không
+        const courses = localStorage.getItem('course');
+        setHasCoursesInCart(courses && JSON.parse(courses).length > 0); // Cập nhật state dựa trên dữ liệu trong localStorage
+    }, []);
+
+    useEffect(() => {
+        const checkCoursesInCart = () => {
+            const courses = localStorage.getItem('course');
+            setHasCoursesInCart(courses && JSON.parse(courses).length > 0);
+        };
+
+        // Kiểm tra mỗi 1000ms
+        const intervalId = setInterval(checkCoursesInCart, 1000);
+
+        return () => clearInterval(intervalId); // Dọn dẹp interval khi component unmount
     }, []);
 
     const toggleAccountDropdown = () => {
@@ -104,6 +121,9 @@ const ClientHeader = () => {
                                     className="download-button flex items-center gap-2 bg-[#f8f9fa] rounded-lg p-3 hover:shadow-[0_0.5em_1.5em_-0.5em_rgba(88,71,116,0.627)] active:shadow-[0_0.3em_1em_-0.5em_rgba(88,71,116,0.627)] relative overflow-hidden"
                                 >
                                     <ShoppingCart className="w-6 h-6" />
+                                    {hasCoursesInCart && (
+                                        <span className="absolute top-1 right-1 block w-3 h-3 bg-red-600 rounded-full"></span> // Hiển thị chấm đỏ nếu có khóa học
+                                    )}
                                 </Link>
                                 <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                                     Giỏ hàng
