@@ -2,7 +2,9 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNotification } from '../../../../components/Notification/NotificationContext';
 import { useNavigate } from 'react-router-dom';
-import { BASE_URL_API } from '../../../../api/config'
+import { BASE_URL_API } from '../../../../api/config';
+import StepIndicator from '../../../../components/StepIndicator/StepIndicator';
+import { Eye, EyeOff } from 'lucide-react';
 
 const ClientResetPassword = () => {
     const [email, setEmail] = useState('');
@@ -11,6 +13,8 @@ const ClientResetPassword = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [step, setStep] = useState('email'); // 'email', 'otp', or 'password'
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const { showNotification } = useNotification();
     const navigate = useNavigate();
 
@@ -99,7 +103,9 @@ const ClientResetPassword = () => {
                         <div className="text-center mt-4">
                             <button
                                 type="button"
-                                onClick={handleForgotPassword} className="text-xs text-[#0099ff] transition-all duration-200 hover:underline">
+                                onClick={handleForgotPassword}
+                                className="text-xs text-[#0099ff] transition-all duration-200 hover:underline"
+                            >
                                 Quay lại đăng nhập
                             </button>
                         </div>
@@ -132,29 +138,43 @@ const ClientResetPassword = () => {
             case 'password':
                 return (
                     <form onSubmit={handleResetPassword} className="mt-5 space-y-4">
-                        <div>
+                        <div className="relative">
                             <label htmlFor="newPassword" className="sr-only">Mật khẩu mới</label>
                             <input
                                 placeholder="Mật khẩu mới"
                                 id="newPassword"
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
-                                className="w-full bg-white border-none p-4 rounded-lg mt-4 shadow-[0_10px_10px_-5px_#cff0ff] placeholder-gray-400 focus:outline-none focus:border-[#12b1d1]"
+                                className="w-full bg-white border-none p-4 rounded-lg shadow-[0_10px_10px_-5px_#cff0ff] placeholder-gray-400 focus:outline-none focus:border-[#12b1d1]"
                                 required
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 focus:outline-none"
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
                         </div>
-                        <div>
+                        <div className="relative">
                             <label htmlFor="confirmPassword" className="sr-only">Xác nhận mật khẩu</label>
                             <input
                                 placeholder="Xác nhận mật khẩu"
                                 id="confirmPassword"
-                                type="password"
+                                type={showConfirmPassword ? "text" : "password"}
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="w-full bg-white border-none p-4 rounded-lg mt-4 shadow-[0_10px_10px_-5px_#cff0ff] placeholder-gray-400 focus:outline-none focus:border-[#12b1d1]"
+                                className="w-full bg-white border-none p-4 rounded-lg shadow-[0_10px_10px_-5px_#cff0ff] placeholder-gray-400 focus:outline-none focus:border-[#12b1d1]"
                                 required
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 focus:outline-none"
+                            >
+                                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
                         </div>
                         <button
                             type="submit"
@@ -169,9 +189,12 @@ const ClientResetPassword = () => {
     };
 
     return (
-        <div className="max-w-xs mx-auto p-6 bg-gradient-to-t from-white to-[#f4f7fb] rounded-3xl border-4 border-white shadow-[0_30px_30px_-20px_rgba(133,189,215,0.88)] my-5">
-            <h2 className="text-center font-extrabold text-[30px] text-[#1089d3]">Đặt Lại Mật Khẩu</h2>
-            {renderForm()}
+        <div className="max-w-md mx-auto my-5">
+            <StepIndicator currentStep={step} />
+            <div className="mt-6 max-w-xs mx-auto p-6 bg-gradient-to-t from-white to-[#f4f7fb] rounded-3xl border-4 border-white shadow-[0_30px_30px_-20px_rgba(133,189,215,0.88)]">
+                <h2 className="text-center font-extrabold text-[30px] text-[#1089d3]">Đặt Lại Mật Khẩu</h2>
+                {renderForm()}
+            </div>
         </div>
     );
 };
