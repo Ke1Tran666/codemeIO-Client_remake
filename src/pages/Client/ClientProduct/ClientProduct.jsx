@@ -100,7 +100,7 @@ const ClientProduct = () => {
                         </div>
                     </div>
                 </div>
-                <div className="mt-8">
+                {/* <div className="mt-8">
                     <h2 className="text-xl font-semibold mb-2">Bình luận</h2>
                     <textarea
                         className="w-full p-2 border rounded mb-2"
@@ -108,7 +108,7 @@ const ClientProduct = () => {
                         placeholder="Để lại bình luận..."
                     />
                     <button className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded">Gửi</button>
-                </div>
+                </div> */}
             </div>
         </main>
     );

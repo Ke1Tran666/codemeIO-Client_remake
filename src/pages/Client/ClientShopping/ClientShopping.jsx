@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Trash2, Star, Search } from 'lucide-react';
+import { BASE_URL } from '../../../api/config';
 
 const ClientShopping = () => {
     const [cartItems, setCartItems] = useState([]);
@@ -108,7 +109,11 @@ const ClientShopping = () => {
                                     />
                                 </div>
                                 <div className="sm:w-1/4 mb-4 sm:mb-0">
-                                    <img src={item.imageCourses || `https://via.placeholder.com/240x135?text=Course+${item.courseId}`} alt={item.title} className="w-full rounded-lg" />
+                                    <img
+                                        src={item.imageCourses ? `${BASE_URL}${item.imageCourses}` : `https://via.placeholder.com/240x135?text=Course+${item.courseId}`}
+                                        alt={item.title}
+                                        className="w-full rounded-lg"
+                                    />
                                 </div>
                                 <div className="sm:w-8/12 sm:pl-4">
                                     <h3 className="text-lg font-semibold">{item.title}</h3>
