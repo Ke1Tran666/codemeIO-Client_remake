@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Star, Check } from 'lucide-react';
 import { useNotification } from '../../../components/Notification/NotificationContext';
@@ -7,6 +7,7 @@ const ClientProduct = () => {
     const location = useLocation();
     const { course } = location.state || {}; // Nhận dữ liệu khóa học
     const { showNotification } = useNotification();
+    const navigate = useNavigate();
 
     // Cuộn lên đầu trang khi component được tải
     useEffect(() => {
@@ -14,6 +15,15 @@ const ClientProduct = () => {
     }, []);
 
     const handlePurchase = () => {
+        // Check if user is logged in
+        const isLoggedIn = localStorage.getItem('user');
+
+        if (!isLoggedIn) {
+            // If not logged in, redirect to login page
+            navigate('/signin');
+            return;
+        }
+
         // Lấy khóa học đã lưu trong localStorage
         const existingCourses = JSON.parse(localStorage.getItem('course')) || [];
 
@@ -82,7 +92,9 @@ const ClientProduct = () => {
                             <button
                                 className="w-full mb-4 bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded"
                                 onClick={handlePurchase}
-                            >Mua ngay</button>
+                            >
+                                {localStorage.getItem('user') ? 'Mua ngay' : 'Đăng nhập hoặc đăng ký để mua khóa học'}
+                            </button>
                             <p className="text-center text-sm mb-4">Chính sách hoàn tiền trong 30 ngày</p>
                         </div>
                     </div>
