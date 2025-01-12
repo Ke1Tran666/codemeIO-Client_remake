@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react'
-import { BASE_URL_API } from '../../../api/config'
+import { BASE_URL, BASE_URL_API } from '../../../api/config'
 
 const ClientCarousel = () => {
     const [currentSlide, setCurrentSlide] = useState(0)
@@ -77,7 +77,11 @@ const ClientCarousel = () => {
                         key={index}
                         className={`absolute top-0 left-0 w-full h-full transition-opacity duration-500 ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
                     >
-                        <img src={course.imageCourses} alt={course.title} className="object-cover w-full h-full rounded-lg" />
+                        <img
+                            src={course.imageCourses ? `${BASE_URL}${course.imageCourses}` : course.imageCourses}
+                            alt={course.title}
+                            className="object-cover w-full h-full rounded-lg"
+                        />
                         <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white p-6 rounded-b-lg">
                             <h2 className="text-2xl font-bold mb-2">{course.title}</h2>
                             <p className="mb-2">{course.description}</p>

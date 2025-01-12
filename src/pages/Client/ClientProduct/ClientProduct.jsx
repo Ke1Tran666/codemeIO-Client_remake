@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Star, Check } from 'lucide-react';
 import { useNotification } from '../../../components/Notification/NotificationContext';
+import { BASE_URL } from '../../../api/config';
 
 const ClientProduct = () => {
     const location = useLocation();
@@ -85,7 +86,7 @@ const ClientProduct = () => {
                     </div>
                     <div className="lg:col-span-1">
                         <div className="border rounded-lg p-6 sticky top-4 bg-white">
-                            <img src={course.imageCourses} alt={course.title} className="mt-4 w-full rounded" />
+                            <img src={`${BASE_URL}${course.imageCourses}`} alt={course.title} className="mt-4 w-full rounded h-40 object-cover" />
                             <div className="mb-4">
                                 <span className="text-3xl font-bold">${course.price.toFixed(2)}</span>
                             </div>

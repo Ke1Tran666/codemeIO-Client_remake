@@ -36,7 +36,7 @@ const ClientLearningProfile = () => {
             state={{ course }}
             className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow duration-300"
         >
-            <img src={course.imageCourses} alt={course.title} className="w-full h-40 object-cover mb-4 rounded" />
+            <img src={`${BASE_URL}${course.imageCourses}`} alt={course.title} className="w-full h-40 object-cover mb-4 rounded" />
             <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
             <p className="text-sm text-gray-600 mb-2">{course.description}</p>
             <div className="flex justify-between items-center">

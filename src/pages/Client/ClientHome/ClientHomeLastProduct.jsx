@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { BASE_URL_API } from '../../../api/config'
+import { BASE_URL, BASE_URL_API } from '../../../api/config'
 
 const defaultCourses = [
     {
@@ -122,7 +122,7 @@ const ClientHomeLastProduct = () => {
             state={{ course }}
             className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
         >
-            <img src={course.imageCourses} alt={course.title} className="w-full h-40 object-cover" />
+            <img src={`${BASE_URL}${course.imageCourses}`} alt={course.title} className="w-full h-40 object-cover" />
             <div className="p-4">
                 <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
                 <p className="text-sm text-gray-600 mb-2">{course.description}</p>
@@ -147,7 +147,7 @@ const ClientHomeLastProduct = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {currentlyLearning.map(course => (
                             <div key={course.courseId} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-                                <img src={course.imageCourses} alt={course.title} className="w-full h-40 object-cover" />
+                                <img src={`${BASE_URL}${course.imageCourses}`} alt={course.title} className="w-full h-40 object-cover" />
                                 <div className="p-4">
                                     <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
                                     <p className="text-sm text-gray-600 mb-2">{course.description}</p>

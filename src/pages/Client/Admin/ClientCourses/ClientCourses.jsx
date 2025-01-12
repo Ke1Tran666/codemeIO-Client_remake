@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Plus, MoreVertical, Edit, Trash } from 'lucide-react';
 import axios from 'axios';
-import { BASE_URL_API } from '../../../../api/config';
+import { BASE_URL, BASE_URL_API } from '../../../../api/config';
 import { useNotification } from '../../../../components/Notification/NotificationContext';
 import Pagination from '../../../../components/Pagination/Pagination';
 import Count from '../../../../components/Count/Count';
@@ -272,11 +272,11 @@ const ClientCourses = () => {
                                 <td className="py-2 px-4 border-b">
                                     <div className="flex items-center">
                                         <img
-                                            src={course.ImageCourses}
+                                            src={course.imageCourses ? `${BASE_URL}${course.imageCourses}` : '/placeholder.svg?height=40&width=40'}
                                             alt={course.title}
                                             className="w-10 h-10 object-cover rounded-full mr-3"
                                             onError={(e) => {
-                                                e.target.onerror = null;
+                                                e.target.onerror = null; // Ngăn chặn vòng lặp vô hạn
                                                 e.target.src = '/placeholder.svg?height=40&width=40';
                                             }}
                                         />
