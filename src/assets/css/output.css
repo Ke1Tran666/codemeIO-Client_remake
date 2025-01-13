@@ -960,14 +960,6 @@ video {
   height: 100vh;
 }
 
-.h-\[300px\] {
-  height: 300px;
-}
-
-.h-\[240px\] {
-  height: 240px;
-}
-
 .max-h-48 {
   max-height: 12rem;
 }

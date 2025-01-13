@@ -2,7 +2,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Star, Check } from 'lucide-react';
 import { useNotification } from '../../../components/Notification/NotificationContext';
-import { BASE_URL } from '../../../api/config';
+import { BASE_URL, BASE_URL_API } from '../../../api/config';
+import axios from 'axios';
 
 const ClientProduct = () => {
     const location = useLocation();
@@ -15,30 +16,50 @@ const ClientProduct = () => {
         window.scrollTo(0, 0);
     }, []);
 
-    const handlePurchase = () => {
-        // Check if user is logged in
+    const handlePurchase = async () => {
         const isLoggedIn = localStorage.getItem('user');
 
         if (!isLoggedIn) {
-            // If not logged in, redirect to login page
             navigate('/signin');
             return;
         }
 
-        // Lấy khóa học đã lưu trong localStorage
-        const existingCourses = JSON.parse(localStorage.getItem('course')) || [];
+        const userId = JSON.parse(isLoggedIn).userId;
 
-        // Kiểm tra xem khóa học đã tồn tại chưa
-        const courseExists = existingCourses.some(item => item.courseId === course.courseId);
+        try {
+            const userResponse = await axios.get(`${BASE_URL_API}/users/${userId}`);
 
-        if (!courseExists) {
-            // Thêm khóa học mới vào mảng
-            existingCourses.push(course);
-            // Lưu lại mảng mới vào localStorage
-            localStorage.setItem('course', JSON.stringify(existingCourses));
-            showNotification('success', 'Success', 'Khóa học đã được lưu vào giỏ hàng!');
-        } else {
-            showNotification('error', 'Error', 'Khóa học này đã có trong giỏ hàng!');
+            const paymentData = {
+                student: { userId: userResponse.data.userId },
+                course: course,
+                addedDate: new Date().toISOString(),
+                paymentStatus: false
+            };
+
+            const response = await axios.post(`${BASE_URL_API}/payments`, paymentData, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            // Kiểm tra phản hồi từ API
+            if (response.status === 201) {
+                showNotification('success', 'Success', 'Khóa học đã được thêm vào giỏ hàng!');
+                // Lưu khóa học vào localStorage với key "courses" và giá trị là mảng rỗng
+                localStorage.setItem('courses', JSON.stringify([]));
+            } else if (response.status === 200) {
+                // Nếu trả về 200 khi khóa học đã tồn tại
+                showNotification('error', 'Error', 'Khóa học đã được thêm rồi.');
+            } else {
+                showNotification('error', 'Error', 'Đã có lỗi xảy ra khi thêm khóa học.');
+            }
+        } catch (error) {
+            // Xử lý lỗi nếu có
+            if (error.response) {
+                showNotification('error', 'Error', 'Lỗi: ' + (error.response.data.message || 'Đã có lỗi xảy ra khi kết nối đến server.'));
+            } else {
+                showNotification('error', 'Error', 'Đã có lỗi xảy ra khi kết nối đến server.');
+            }
         }
     };
 

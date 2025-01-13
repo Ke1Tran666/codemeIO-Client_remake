@@ -26,13 +26,13 @@ const ClientHeader = () => {
 
         // Kiểm tra xem có khóa học nào trong localStorage không
         const courses = localStorage.getItem('course');
-        setHasCoursesInCart(courses && JSON.parse(courses).length > 0); // Cập nhật state dựa trên dữ liệu trong localStorage
+        setHasCoursesInCart(!!courses); // Cập nhật state dựa trên sự tồn tại của key 'course'
     }, []);
 
     useEffect(() => {
         const checkCoursesInCart = () => {
             const courses = localStorage.getItem('course');
-            setHasCoursesInCart(courses && JSON.parse(courses).length > 0);
+            setHasCoursesInCart(!!courses); // Cập nhật state dựa trên sự tồn tại của key 'course'
         };
 
         // Kiểm tra mỗi 1000ms
