@@ -2,17 +2,19 @@ import { useState, useEffect } from 'react';
 import { Trash2, Star, Search } from 'lucide-react';
 import { BASE_URL, BASE_URL_API } from '../../../api/config';
 import axios from 'axios';
+import { useNotification } from '../../../components/Notification/NotificationContext';
 
 const ClientShopping = () => {
     const [cartItems, setCartItems] = useState([]);
-    const [selectedItems, setSelectedItems] = useState(new Set());
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredCourses, setFilteredCourses] = useState([]);
+    const [selectedItems, setSelectedItems] = useState(new Set());
+    const { showNotification } = useNotification();
 
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                const studentId = JSON.parse(localStorage.getItem('user')).userId; // Assuming studentId is stored in localStorage
+                const studentId = JSON.parse(localStorage.getItem('user')).userId;
                 if (!studentId) {
                     console.error('Student ID not found');
                     return;
@@ -20,40 +22,49 @@ const ClientShopping = () => {
                 const response = await axios.get(`${BASE_URL_API}/payments/student/${studentId}`);
                 const data = response.data;
                 console.log(data);
-                const courses = data.map(item => item.course);
-                console.log(courses);
-                setCartItems(courses);
-                setFilteredCourses(courses);
-                setSelectedItems(new Set(courses.map(item => item.courseId)));
+                setCartItems(data);
+                setFilteredCourses(data);
+                showNotification('success', 'Success', 'Tải dữ liệu thành công!');
             } catch (error) {
                 console.error('Error fetching courses:', error);
-                // Handle error (e.g., show error message to user)
+                showNotification('error', 'Error', 'Đã có lỗi xảy ra khi kết nối đến server.');
             }
         };
 
         fetchCourses();
-    }, []);
+    }, []); // Empty dependency array to run only once on mount
 
-    const removeItem = (id) => {
-        // Cập nhật cartItems
-        const updatedCartItems = cartItems.filter(item => item.courseId !== id);
-        setCartItems(updatedCartItems);
-
-        // Cập nhật selectedItems
-        setSelectedItems(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(id);
-            return newSet;
-        });
+    const removeItem = async (paymentId) => {
+        try {
+            await axios.delete(`${BASE_URL_API}/payments/${paymentId}`);
+            const updatedCartItems = cartItems.filter(item => item.paymentId !== paymentId);
+            setCartItems(updatedCartItems);
+            setFilteredCourses(updatedCartItems);
+            showNotification('success', 'Success', 'Đã xoá khóa học khỏi giỏ hàng.');
+        } catch (error) {
+            console.error('Error removing item:', error);
+            showNotification('error', 'Error', 'xoá khóa học thất bại.');
+        }
     };
 
-    const toggleItemSelection = (id) => {
+    const handleSearch = (term) => {
+        setSearchTerm(term);
+        const filtered = term
+            ? cartItems.filter(item =>
+                item.course.title.toLowerCase().includes(term.toLowerCase()) ||
+                item.course.instructor.username.toLowerCase().includes(term.toLowerCase())
+            )
+            : cartItems;
+        setFilteredCourses(filtered);
+    };
+
+    const toggleItemSelection = (paymentId) => {
         setSelectedItems(prev => {
             const newSet = new Set(prev);
-            if (newSet.has(id)) {
-                newSet.delete(id);
+            if (newSet.has(paymentId)) {
+                newSet.delete(paymentId);
             } else {
-                newSet.add(id);
+                newSet.add(paymentId);
             }
             return newSet;
         });
@@ -63,32 +74,13 @@ const ClientShopping = () => {
         if (selectedItems.size === filteredCourses.length) {
             setSelectedItems(new Set());
         } else {
-            setSelectedItems(new Set(filteredCourses.map(item => item.courseId)));
+            setSelectedItems(new Set(filteredCourses.map(item => item.paymentId)));
         }
     };
-
-    const handleSearch = (term) => {
-        setSearchTerm(term);
-        let filtered;
-        if (!term) {
-            filtered = cartItems;
-        } else {
-            filtered = cartItems.filter(course =>
-                course.title.toLowerCase().includes(term.toLowerCase()) ||
-                course.instructor.username.toLowerCase().includes(term.toLowerCase())
-            );
-        }
-        setFilteredCourses(filtered);
-        setSelectedItems(new Set(filtered.map(item => item.courseId)));
-    };
-
-    useEffect(() => {
-        setFilteredCourses(cartItems);
-    }, [cartItems]);
 
     const subtotal = filteredCourses
-        .filter(item => selectedItems.has(item.courseId))
-        .reduce((sum, item) => sum + item.price, 0);
+        .filter(item => selectedItems.has(item.paymentId))
+        .reduce((sum, item) => sum + item.course.price, 0);
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -109,40 +101,43 @@ const ClientShopping = () => {
                             </label>
                         </div>
                         {filteredCourses.map(item => (
-                            <div key={item.courseId} className="flex flex-col sm:flex-row border-b border-gray-200 py-4">
+                            <div key={item.paymentId} className="flex flex-col sm:flex-row border-b border-gray-200 py-4">
                                 <div className="sm:w-1/12 flex items-center justify-center mb-4 sm:mb-0">
                                     <input
                                         type="checkbox"
                                         className="form-checkbox h-5 w-5 text-blue-600"
-                                        checked={selectedItems.has(item.courseId)}
-                                        onChange={() => toggleItemSelection(item.courseId)}
+                                        checked={selectedItems.has(item.paymentId)}
+                                        onChange={() => toggleItemSelection(item.paymentId)}
                                     />
                                 </div>
                                 <div className="sm:w-1/4 mb-4 sm:mb-0">
                                     <img
-                                        src={item.imageCourses ? `${BASE_URL}${item.imageCourses}` : `https://via.placeholder.com/240x135?text=Course+${item.courseId}`}
-                                        alt={item.title}
-                                        className="w-full rounded-lg"
+                                        src={item.course.imageCourses ? `${BASE_URL}${item.course.imageCourses}` : `https://via.placeholder.com/240x135?text=Course+${item.course.courseId}`}
+                                        alt={item.course.title}
+                                        className="w-full rounded-lg object-cover h-32"
                                     />
                                 </div>
                                 <div className="sm:w-8/12 sm:pl-4">
-                                    <h3 className="text-lg font-semibold">{item.title}</h3>
-                                    <p className="text-sm text-gray-600 mb-2">By {item.instructor.username}</p>
+                                    <h3 className="text-lg font-semibold">{item.course.title}</h3>
+                                    <p className="text-sm text-gray-600 mb-2">By {item.course.instructor.username}</p>
                                     <div className="flex items-center mb-2">
-                                        <span className="text-yellow-500 mr-1">{item.rating.toFixed(1)}</span>
+                                        <span className="text-yellow-500 mr-1">{item.course.rating.toFixed(1)}</span>
                                         <div className="flex">
-                                            {[...Array(5)].map((_, i) => (
-                                                <Star key={i} className={`w-4 h-4 ${i < Math.floor(item.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`} />
+                                            {Array.from({ length: 5 }, (_, i) => (
+                                                <Star
+                                                    key={i}
+                                                    className={`w-4 h-4 ${i < Math.floor(item.course.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
+                                                />
                                             ))}
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center mt-2">
-                                        <button onClick={() => removeItem(item.courseId)} className="text-sm text-red-600 hover:text-red-800 flex items-center">
+                                        <button onClick={() => removeItem(item.paymentId)} className="text-sm text-red-600 hover:text-red-800 flex items-center">
                                             <Trash2 className="w-4 h-4 mr-1" />
                                             Remove
                                         </button>
                                         <div className="text-right">
-                                            <span className="text-lg font-bold">${item.price.toFixed(2)}</span>
+                                            <span className="text-lg font-bold">${item.course.price.toFixed(2)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -173,7 +168,13 @@ const ClientShopping = () => {
                                 <span>Total:</span>
                                 <span>${subtotal.toFixed(2)}</span>
                             </div>
-                            <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300">
+                            <button
+                                className={`w-full py-3 rounded-lg font-semibold transition duration-300 ${selectedItems.size > 0
+                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    }`}
+                                disabled={selectedItems.size === 0}
+                            >
                                 Thanh toán
                             </button>
                             <p className="text-xs text-center mt-4 text-gray-500">
