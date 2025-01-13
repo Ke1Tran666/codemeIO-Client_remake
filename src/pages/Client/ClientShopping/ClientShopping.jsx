@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Trash2, Star, Search } from 'lucide-react';
-import { BASE_URL } from '../../../api/config';
+import { BASE_URL, BASE_URL_API } from '../../../api/config';
+import axios from 'axios';
 
 const ClientShopping = () => {
     const [cartItems, setCartItems] = useState([]);
@@ -9,11 +10,28 @@ const ClientShopping = () => {
     const [filteredCourses, setFilteredCourses] = useState([]);
 
     useEffect(() => {
-        // Lấy dữ liệu từ localStorage
-        const storedCourses = JSON.parse(localStorage.getItem('course')) || [];
-        setCartItems(storedCourses);
-        setFilteredCourses(storedCourses);
-        setSelectedItems(new Set(storedCourses.map(item => item.courseId)));
+        const fetchCourses = async () => {
+            try {
+                const studentId = JSON.parse(localStorage.getItem('user')).userId; // Assuming studentId is stored in localStorage
+                if (!studentId) {
+                    console.error('Student ID not found');
+                    return;
+                }
+                const response = await axios.get(`${BASE_URL_API}/payments/student/${studentId}`);
+                const data = response.data;
+                console.log(data);
+                const courses = data.map(item => item.course);
+                console.log(courses);
+                setCartItems(courses);
+                setFilteredCourses(courses);
+                setSelectedItems(new Set(courses.map(item => item.courseId)));
+            } catch (error) {
+                console.error('Error fetching courses:', error);
+                // Handle error (e.g., show error message to user)
+            }
+        };
+
+        fetchCourses();
     }, []);
 
     const removeItem = (id) => {
@@ -27,14 +45,6 @@ const ClientShopping = () => {
             newSet.delete(id);
             return newSet;
         });
-
-        // Lưu lại vào localStorage
-        if (updatedCartItems.length > 0) {
-            localStorage.setItem('course', JSON.stringify(updatedCartItems));
-        } else {
-            // Xóa khóa 'course' khỏi localStorage nếu không còn khóa học nào
-            localStorage.removeItem('course');
-        }
     };
 
     const toggleItemSelection = (id) => {
